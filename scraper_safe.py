@@ -50,6 +50,7 @@ for name in names:
     for a_tag in soup.find_all('a', href=True):
         if a_tag['href'].startswith('Thread-') and f'highlight={name}' in a_tag['href']:
             thread_links.append(a_tag['href'])
+    thread_links = list(set(thread_links))
     for thread_url in thread_links:
         thread_url = f"http://breachedmw4otc2lhx7nqe4wyxfhpvy32ooz26opvqkmmrbg73c7ooad.onion//{thread_url}"
         thread_response = request.get(thread_url, cookies=cookies, headers=headers, verify=False, allow_redirects=False)
