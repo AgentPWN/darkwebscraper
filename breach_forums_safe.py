@@ -8,9 +8,6 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 request = RequestsTor(tor_ports=(9050,), tor_cport=9051, autochange_id=False)
 
-cookies = {
-    "[REDACTED]"
-}
 
 headers = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -35,10 +32,10 @@ base_url = "http://breachedmw4otc2lhx7nqe4wyxfhpvy32ooz26opvqkmmrbg73c7ooad.onio
 
 for name in names:
     url = base_url.format(name)
-    r = request.get(url, cookies=cookies, headers=headers, verify=False, allow_redirects=False)
+    r = request.get(url, headers=headers, verify=False, allow_redirects=False)
     if 300 <= r.status_code < 400:
         redirect_url = r.headers.get('Location')
-        r = request.get(redirect_url, cookies=cookies, headers=headers, verify=False, allow_redirects=False)
+        r = request.get(redirect_url, headers=headers, verify=False, allow_redirects=False)
     if 300 <= r.status_code < 400:
         continue
     if "Sorry, but no results were returned using the query information you provided. Please redefine your search terms and try again." in r.text:
