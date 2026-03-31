@@ -1,46 +1,38 @@
 package main
 
 import (
-	"fmt"
+	"darkwebscraper/website"
 	"os"
 	"strings"
 	"sync"
+	"time"
 )
 
-func breachForums(query string) {
-	fmt.Println(query)
-}
-func dread(query string) {
-	fmt.Println(query)
-}
-func lockBit(query string) {
-	fmt.Println(query)
-}
-func leakBase(query string) {
-	fmt.Println(query)
-}
 func main() {
-	funcs := []func(query string){
-		breachForums,
-		dread,
-		lockBit,
-		leakBase,
+	funcs := []func(query string) bool{
+		website.Breachforums,
+		website.Dread,
+		website.Lockbit,
+		website.LeakBase,
 	}
 	var wg sync.WaitGroup
-	fmt.Println("hello world")
 	contents, err := os.ReadFile("names.txt")
-	if err == nil {
+	if err != nil {
+		panic(err)
+	} else {
 		eachContent := strings.SplitSeq(string(contents), "\n")
 		for i := range eachContent {
 			// fmt.Println(i)
+			i = strings.TrimSpace(i)
 			for _, f := range funcs {
 				wg.Add(1)
-				go func(fn func(query string)) {
+				go func(fn func(query string) bool) {
 					defer wg.Done()
 					fn(i)
 				}(f)
 			}
 			wg.Wait()
+			time.Sleep(5 * time.Second)
 		}
 	}
 }
