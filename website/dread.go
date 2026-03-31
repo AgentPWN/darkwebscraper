@@ -15,6 +15,7 @@ import (
 
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
+	"golang.org/x/net/html"
 	"golang.org/x/net/proxy"
 )
 
@@ -22,6 +23,32 @@ const dreadOnion = "http://dreadytofatroptsdj6io7l3xptbet6onoyno2yv7jicoxknyazub
 
 var dreadClient *http.Client
 var bodyBytesDread []byte
+
+func extractPostLinks(body string) []string {
+	var links []string
+
+	doc, err := html.Parse(strings.NewReader(body))
+	if err != nil {
+		return links
+	}
+
+	var f func(*html.Node)
+	f = func(n *html.Node) {
+		if n.Type == html.ElementNode && n.Data == "a" {
+			for _, attr := range n.Attr {
+				if attr.Key == "href" && strings.HasPrefix(attr.Val, "/post/") {
+					links = append(links, attr.Val)
+				}
+			}
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			f(c)
+		}
+	}
+
+	f(doc)
+	return links
+}
 
 func initDreadClient() error {
 	if dreadClient != nil {
@@ -167,17 +194,17 @@ func Dread(query string) bool {
 
 		case strings.Contains(body, "Exactly"):
 			fmt.Println("[Dread] Found result")
-			return false
+
+			links := extractPostLinks(body)
+			for _, link := range links {
+				fmt.Println("Post link:", dreadOnion+link)
+			}
+			return true
 
 		case strings.Contains(body, "queue"):
 			fmt.Println("[Dread] still in queue, retrying…")
 			time.Sleep(time.Duration(8+rand.Intn(5)) * time.Second)
 			continue
-
-		default:
-			fmt.Println("[Dread] results found")
-			fmt.Println(body)
-			return true
 		}
 	}
 }
