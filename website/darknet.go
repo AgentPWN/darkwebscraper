@@ -3,12 +3,14 @@ package website
 import (
 	"compress/gzip"
 	"crypto/tls"
+	"darkwebscraper/utils"
 	"fmt"
 	"io"
 	"net/http"
 	"strings"
 	"time"
 
+	"golang.org/x/net/html"
 	"golang.org/x/net/proxy"
 )
 
@@ -17,6 +19,31 @@ const darknetOnion = "http://darknet4zvovn77zgkppdrgzuf7i3kvn5aepmjp6g6djyyzxwyj
 var darknetClient *http.Client
 var bodyBytesDarknet []byte
 
+func extractPostLinks(body string) []string {
+	var links []string
+
+	doc, err := html.Parse(strings.NewReader(body))
+	if err != nil {
+		return links
+	}
+
+	var f func(*html.Node)
+	f = func(n *html.Node) {
+		if n.Type == html.ElementNode && n.Data == "a" {
+			for _, attr := range n.Attr {
+				if attr.Key == "href" && strings.HasPrefix(attr.Val, "/post/") {
+					links = append(links, attr.Val)
+				}
+			}
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			f(c)
+		}
+	}
+
+	f(doc)
+	return links
+}
 func initDarknetClient() error {
 	if darknetClient != nil {
 		return nil
@@ -79,6 +106,12 @@ func Darknet(query string) bool {
 		return false
 	} else {
 		// fmt.Println(body)
+		links := utils.ExtractPostLinks(body, "/threads/")
+		for _, link := range links {
+			if link != "/threads/contact-us.701/" {
+				fmt.Println("Post link:", darknetOnion+link)
+			}
+		}
 		fmt.Println("[Darknet] Results found")
 		return true
 	}
