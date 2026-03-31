@@ -14,6 +14,7 @@ func main() {
 		website.Dread,
 		website.Lockbit,
 		website.LeakBase,
+		website.Darknet,
 	}
 	var wg sync.WaitGroup
 	contents, err := os.ReadFile("names.txt")

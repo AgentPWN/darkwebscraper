@@ -21,6 +21,7 @@ import (
 const dreadOnion = "http://dreadytofatroptsdj6io7l3xptbet6onoyno2yv7jicoxknyazubrad.onion"
 
 var dreadClient *http.Client
+var bodyBytesDread []byte
 
 func initDreadClient() error {
 	if dreadClient != nil {
@@ -131,21 +132,20 @@ func Dread(query string) bool {
 			continue
 		}
 
-		var bodyBytes []byte
 		if resp.Header.Get("Content-Encoding") == "gzip" {
 			reader, err := gzip.NewReader(resp.Body)
 			if err != nil {
 				resp.Body.Close()
 				continue
 			}
-			bodyBytes, err = io.ReadAll(reader)
+			bodyBytesDread, err = io.ReadAll(reader)
 			reader.Close()
 			if err != nil {
 				resp.Body.Close()
 				continue
 			}
 		} else {
-			bodyBytes, err = io.ReadAll(resp.Body)
+			bodyBytesDread, err = io.ReadAll(resp.Body)
 			if err != nil {
 				resp.Body.Close()
 				continue
@@ -153,7 +153,7 @@ func Dread(query string) bool {
 		}
 		resp.Body.Close()
 
-		body := string(bodyBytes)
+		body := string(bodyBytesDread)
 		fmt.Println("[Dread] response received")
 
 		for _, c := range dreadClient.Jar.Cookies(req.URL) {
@@ -165,8 +165,8 @@ func Dread(query string) bool {
 			fmt.Println("[Dread] no results")
 			return false
 
-		case strings.Contains(body, "captcha"):
-			fmt.Println("[Dread] captcha hit on HTTP client — aborting")
+		case strings.Contains(body, "Exactly"):
+			fmt.Println("[Dread] Found result")
 			return false
 
 		case strings.Contains(body, "queue"):
