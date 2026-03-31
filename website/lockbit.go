@@ -2,13 +2,13 @@ package website
 
 import (
 	"crypto/tls"
+	"darkwebscraper/utils"
 	"fmt"
 	"io"
 	"net/http"
 	"strings"
 	"time"
 
-	"golang.org/x/net/html"
 	"golang.org/x/net/proxy"
 )
 
@@ -59,37 +59,24 @@ func Lockbit(query string) bool {
 		fmt.Println("[Lockbit] request failed:", err)
 	}
 	bodyBytesLockbit, err = io.ReadAll(resp.Body)
-	doc, err := html.Parse(strings.NewReader(string(bodyBytesLockbit)))
+	body := string(bodyBytesLockbit)
 	if err != nil {
 		panic(err)
 	}
-
-	var matches []string
-
-	var f func(*html.Node)
-	f = func(n *html.Node) {
-		if n.Type == html.ElementNode && n.Data == "a" {
-			for _, attr := range n.Attr {
-				if attr.Key == "href" {
-					link := attr.Val
-					if strings.Contains(link, query) {
-						matches = append(matches, link)
-					}
-				}
-			}
-		}
-
-		for c := n.FirstChild; c != nil; c = c.NextSibling {
-			f(c)
+	links := utils.ExtractPostLinks(body, "")
+	var result bool = false
+	for _, link := range links {
+		if strings.Contains(link, query) {
+			fmt.Println(lockbitOnion + link)
+			result = true
 		}
 	}
-
-	f(doc)
-	if matches != nil {
-		fmt.Println("[Lockbit] Matches found")
-		return true
+	if result == true {
+		fmt.Println("[Lockbit] Results found")
+		return result
 	} else {
-		fmt.Println("[Lockbit] No matches found")
-		return false
+		fmt.Println("[Lockbit] Results not found")
+		return result
 	}
+
 }

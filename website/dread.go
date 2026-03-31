@@ -58,8 +58,6 @@ func initDreadClient() error {
 		return fmt.Errorf("chromedp navigate/wait: %w", err)
 	}
 
-	fmt.Println("[initDreadClient] page loaded, harvesting cookies…")
-
 	var chromeCookies []*network.Cookie
 	if err := chromedp.Run(ctx, chromedp.ActionFunc(func(ctx context.Context) error {
 		var cdpErr error
@@ -79,10 +77,7 @@ func initDreadClient() error {
 			Secure:   c.Secure,
 			HttpOnly: c.HTTPOnly,
 		})
-		fmt.Printf("[initDreadClient] cookie harvested: %s=%s\n", c.Name, c.Value)
 	}
-
-	fmt.Printf("[initDreadClient] done — %d cookie(s) collected\n", len(cookies))
 
 	jar, _ := cookiejar.New(nil)
 
@@ -113,8 +108,7 @@ func initDreadClient() error {
 
 func Dread(query string) bool {
 	if err := initDreadClient(); err != nil {
-		fmt.Println("[Dread] init failed:", err)
-		return false
+		panic(err)
 	}
 
 	targetURL := dreadOnion + "/search/?q=" + url.QueryEscape(query)
@@ -155,11 +149,6 @@ func Dread(query string) bool {
 		resp.Body.Close()
 
 		body := string(bodyBytesDread)
-		fmt.Println("[Dread] response received")
-
-		for _, c := range dreadClient.Jar.Cookies(req.URL) {
-			fmt.Printf("[Dread] cookie: %s=%s\n", c.Name, c.Value)
-		}
 
 		switch {
 		case strings.Contains(body, "No results"):
