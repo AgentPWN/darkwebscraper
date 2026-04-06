@@ -20,6 +20,7 @@ func ExtractPostLinks(body string, prefix string) []string {
 			for _, attr := range n.Attr {
 				if attr.Key == "href" && strings.HasPrefix(attr.Val, prefix) {
 					links = append(links, attr.Val)
+					// fmt.Println(links, attr.Val)
 				}
 			}
 		}

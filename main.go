@@ -15,7 +15,8 @@ func main() {
 		// website.Lockbit,
 		// website.LeakBase,
 		// website.Darknet,
-		website.Everest,
+		// website.Everest,
+		website.Ransomexx,
 	}
 	var wg sync.WaitGroup
 	contents, err := os.ReadFile("names.txt")

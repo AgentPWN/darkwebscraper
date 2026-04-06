@@ -64,9 +64,10 @@ func Lockbit(query string) bool {
 		panic(err)
 	}
 	links := utils.ExtractPostLinks(body, "")
+	fmt.Println(links)
 	var result bool = false
 	for _, link := range links {
-		if strings.Contains(link, query) {
+		if strings.Contains(link, strings.ToLower(query)) {
 			fmt.Println(lockbitOnion + link)
 			result = true
 		}
