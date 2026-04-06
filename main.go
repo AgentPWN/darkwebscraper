@@ -10,11 +10,12 @@ import (
 
 func main() {
 	funcs := []func(query string) bool{
-		website.Breachforums,
-		website.Dread,
-		website.Lockbit,
-		website.LeakBase,
-		website.Darknet,
+		// website.Breachforums,
+		// website.Dread,
+		// website.Lockbit,
+		// website.LeakBase,
+		// website.Darknet,
+		website.Everest,
 	}
 	var wg sync.WaitGroup
 	contents, err := os.ReadFile("names.txt")
