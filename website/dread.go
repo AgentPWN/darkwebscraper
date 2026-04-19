@@ -106,7 +106,8 @@ func initDreadClient() error {
 	return nil
 }
 
-func Dread(query string) bool {
+func Dread(query string, chanDataForDb chan utils.DataForDb) bool {
+	data := utils.DataForDb{}
 	if err := initDreadClient(); err != nil {
 		panic(err)
 	}
@@ -161,6 +162,11 @@ func Dread(query string) bool {
 			links := utils.ExtractPostLinks(body, "/post/")
 			for _, link := range links {
 				fmt.Println("Post link:", dreadOnion+link)
+				data.Source = "dread"
+				data.Key = query
+				data.Url = dreadOnion + link
+				data.Desc = "lorem ipsum"
+				chanDataForDb <- data
 			}
 			return true
 

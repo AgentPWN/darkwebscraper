@@ -1,8 +1,11 @@
 package website
 
-import "fmt"
+import (
+	"darkwebscraper/utils"
+	"fmt"
+)
 
-func LeakBase(query string) bool {
+func LeakBase(query string, chanDataForDb chan utils.DataForDb) bool {
 	fmt.Println(query)
 	return true
 }

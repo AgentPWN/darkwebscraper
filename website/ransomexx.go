@@ -74,7 +74,7 @@ func scanRansomexx(url string, query string) bool {
 	return result
 }
 
-func Ransomexx(query string) bool {
+func Ransomexx(query string, chanDataForDb chan utils.DataForDb) bool {
 	if err := initRansomexxClient(); err != nil {
 		fmt.Println("[Ransomexx] init failed:", err)
 		return false
@@ -85,6 +85,8 @@ func Ransomexx(query string) bool {
 		ransomexxOnionCurrent := fmt.Sprintf("%sindex%d.html", ransomexxOnion, i+1)
 		if result == false {
 			result = scanRansomexx(ransomexxOnionCurrent, query)
+			// this does not work fully because it doesn't keep checking for all results
+			// it exits the moment it finds a result
 		}
 
 	}

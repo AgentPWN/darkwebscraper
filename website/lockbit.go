@@ -41,7 +41,8 @@ func initLockbitClient() error {
 	return nil
 }
 
-func Lockbit(query string) bool {
+func Lockbit(query string, chanDataForDb chan utils.DataForDb) bool {
+	data := utils.DataForDb{}
 	if err := initLockbitClient(); err != nil {
 		fmt.Println("[Lockbit] init failed:", err)
 		return false
@@ -64,11 +65,16 @@ func Lockbit(query string) bool {
 		panic(err)
 	}
 	links := utils.ExtractPostLinks(body, "")
-	fmt.Println(links)
+	// fmt.Println(links)
 	var result bool = false
 	for _, link := range links {
 		if strings.Contains(link, strings.ToLower(query)) {
 			fmt.Println(lockbitOnion + link)
+			data.Source = "lockbit"
+			data.Key = query
+			data.Url = lockbitOnion + link
+			data.Desc = "lorem ipsum"
+			chanDataForDb <- data
 			result = true
 		}
 	}

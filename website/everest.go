@@ -3,6 +3,7 @@ package website
 import (
 	"context"
 	"crypto/tls"
+	"darkwebscraper/utils"
 	"fmt"
 	"net/http"
 	"net/http/cookiejar"
@@ -124,7 +125,7 @@ func initEverestClient() error {
 	return nil
 }
 
-func Everest(query string) bool {
+func Everest(query string, chanDataForDb chan utils.DataForDb) bool {
 	if err := initEverestClient(); err != nil {
 		fmt.Println("[Everest] init failed:", err)
 		return false

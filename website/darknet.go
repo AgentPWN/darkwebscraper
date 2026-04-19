@@ -68,7 +68,8 @@ func initDarknetClient() error {
 	return nil
 }
 
-func Darknet(query string) bool {
+func Darknet(query string, chanDataForDb chan utils.DataForDb) bool {
+	data := utils.DataForDb{}
 	if err := initDarknetClient(); err != nil {
 		fmt.Println("[Darknet] init failed:", err)
 		return false
@@ -110,6 +111,11 @@ func Darknet(query string) bool {
 		for _, link := range links {
 			if link != "/threads/contact-us.701/" {
 				fmt.Println("Post link:", darknetOnion+link)
+				data.Source = "darknetarmy"
+				data.Key = query
+				data.Url = darknetOnion + link
+				data.Desc = "lorem ipsum"
+				chanDataForDb <- data
 			}
 		}
 		fmt.Println("[Darknet] Results found")
