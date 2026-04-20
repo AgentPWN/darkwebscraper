@@ -20,12 +20,17 @@ func main() {
 	client := utils.ConnectToDb()
 	funcs := []func(query string, chanAddDataToDb chan utils.DataForDb) bool{
 		// website.Breachforums,
-		website.Dread,
-		website.Lockbit,
+		// website.Gunra,
+		// website.IncRansom,
+		// website.Dread,
+		// website.Lockbit,
 		// website.LeakBase,
-		website.Darknet,
+		// website.Darknet,
 		// website.Everest,
 		// website.Ransomexx,
+		// website.Kairos,
+		// website.Kyber, this won't work as this has captcha, if this captcha can be solved, the website can be scraped
+		website.Lamashtu,
 	}
 	var wg sync.WaitGroup
 	chanAddDataToDb := make(chan utils.DataForDb, 100)
@@ -48,5 +53,6 @@ func main() {
 			wg.Wait()
 			time.Sleep(5 * time.Second)
 		}
+		close(chanAddDataToDb)
 	}
 }
