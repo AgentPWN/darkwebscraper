@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"darkwebscraper/utils"
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -52,12 +51,14 @@ func scanRansomexx(url string, query string) bool {
 
 	if err != nil {
 		fmt.Println("[Ransomexx] request failed:", err)
+		return false
 	}
-	bodyBytesRansomexx, err = io.ReadAll(resp.Body)
-	body := string(bodyBytesRansomexx)
+	bodyBytesRansomexx, err = readResponseBody(resp)
 	if err != nil {
-		panic(err)
+		fmt.Println("[Ransomexx] read body failed:", err)
+		return false
 	}
+	body := string(bodyBytesRansomexx)
 	var result bool = false
 	// fmt.Println(body)
 	if strings.Contains(body, query) {

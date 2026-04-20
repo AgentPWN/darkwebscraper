@@ -1,12 +1,10 @@
 package website
 
 import (
-	"compress/gzip"
 	"context"
 	"crypto/tls"
 	"darkwebscraper/utils"
 	"fmt"
-	"io"
 	"math/rand"
 	"net/http"
 	"net/http/cookiejar"
@@ -128,26 +126,12 @@ func Dread(query string, chanDataForDb chan utils.DataForDb) bool {
 			continue
 		}
 
-		if resp.Header.Get("Content-Encoding") == "gzip" {
-			reader, err := gzip.NewReader(resp.Body)
-			if err != nil {
-				resp.Body.Close()
-				continue
-			}
-			bodyBytesDread, err = io.ReadAll(reader)
-			reader.Close()
-			if err != nil {
-				resp.Body.Close()
-				continue
-			}
-		} else {
-			bodyBytesDread, err = io.ReadAll(resp.Body)
-			if err != nil {
-				resp.Body.Close()
-				continue
-			}
+		bodyBytesDread, err = readResponseBody(resp)
+		if err != nil {
+			fmt.Println("[Dread] read body failed:", err)
+			time.Sleep(10 * time.Second)
+			continue
 		}
-		resp.Body.Close()
 
 		body := string(bodyBytesDread)
 

@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"darkwebscraper/utils"
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -58,12 +57,14 @@ func Lockbit(query string, chanDataForDb chan utils.DataForDb) bool {
 
 	if err != nil {
 		fmt.Println("[Lockbit] request failed:", err)
+		return false
 	}
-	bodyBytesLockbit, err = io.ReadAll(resp.Body)
-	body := string(bodyBytesLockbit)
+	bodyBytesLockbit, err = readResponseBody(resp)
 	if err != nil {
-		panic(err)
+		fmt.Println("[Lockbit] read body failed:", err)
+		return false
 	}
+	body := string(bodyBytesLockbit)
 	links := utils.ExtractPostLinks(body, "")
 	// fmt.Println(links)
 	var result bool = false

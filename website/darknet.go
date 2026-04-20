@@ -1,11 +1,9 @@
 package website
 
 import (
-	"compress/gzip"
 	"crypto/tls"
 	"darkwebscraper/utils"
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -83,22 +81,14 @@ func Darknet(query string, chanDataForDb chan utils.DataForDb) bool {
 	req.Header.Set("Accept-Encoding", "gzip")
 
 	resp, err := darknetClient.Do(req)
-	// fmt.Println(resp)
-	if resp.Header.Get("Content-Encoding") == "gzip" {
-		reader, err := gzip.NewReader(resp.Body)
-		if err != nil {
-			resp.Body.Close()
-		}
-		bodyBytesDarknet, err = io.ReadAll(reader)
-		reader.Close()
-		if err != nil {
-			resp.Body.Close()
-		}
-	} else {
-		bodyBytesDarknet, err = io.ReadAll(resp.Body)
-		if err != nil {
-			resp.Body.Close()
-		}
+	if err != nil {
+		fmt.Println("[Darknet] request failed:", err)
+		return false
+	}
+	bodyBytesDarknet, err = readResponseBody(resp)
+	if err != nil {
+		fmt.Println("[Darknet] read body failed:", err)
+		return false
 	}
 	body := string(bodyBytesDarknet)
 
