@@ -86,7 +86,7 @@ func Kyber(query string, chanDataForDb chan utils.DataForDb) bool {
 		resp.Body.Close()
 
 		body := string(bodyBytesKyber)
-		fmt.Println(body)
+		// fmt.Println(body)
 		if strings.Contains(body, query) {
 			links := utils.ExtractPostLinks(body, "/post/")
 			for _, link := range links {

@@ -14,13 +14,17 @@ import (
 	"golang.org/x/net/proxy"
 )
 
-const gunraOnion = "http://www.lgiil72vkmdtbc3qv4tyq6wedyjxqr2qd4ze7xl2cxgerdnymxj7soqd.onion/"
+type KillSecResponse struct {
+	Posts []utils.CompanyKillSec `json:"posts"`
+}
 
-var gunraClient *http.Client
-var bodyBytesGunra []byte
+const killSecOnion = "http://ks5424y3wpr5zlug5c7i6svvxweinhbdcqcfnptkfcutrncfazzgz5id.onion/"
 
-func initGunraClient() error {
-	if gunraClient != nil {
+var killSecClient *http.Client
+var bodyBytesKillSec []byte
+
+func initKillSecClient() error {
+	if killSecClient != nil {
 		return nil
 	}
 
@@ -36,77 +40,71 @@ func initGunraClient() error {
 		},
 	}
 
-	gunraClient = &http.Client{
+	killSecClient = &http.Client{
 		Transport: transport,
 		Timeout:   60 * time.Second,
 	}
 	return nil
 }
 
-func Gunra(query string, chanDataForDb chan utils.DataForDb) bool {
+func KillSec(query string, chanDataForDb chan utils.DataForDb) bool {
 	data := utils.DataForDb{}
-	var companies []utils.CompanyGunra
-	if err := initGunraClient(); err != nil {
-		fmt.Println("[Gunra] init failed:", err)
+	var response KillSecResponse
+
+	if err := initKillSecClient(); err != nil {
+		fmt.Println("[KillSec] init failed:", err)
 		return false
 	}
-	// go run main.go
-	// fmt.Println("[Gunra]")
-	req, _ := http.NewRequest("GET", gunraOnion+"api/public/companies", nil)
+
+	req, _ := http.NewRequest("GET", killSecOnion+"api/data-x7g9k2.php?force_db=1", nil)
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0")
 	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
 	req.Header.Set("Accept-Language", "en-US,en;q=0.5")
 	req.Header.Set("Accept-Encoding", "gzip")
 
-	resp, err := gunraClient.Do(req)
-	// fmt.Println(resp)
+	resp, err := killSecClient.Do(req)
 	if resp.Header.Get("Content-Encoding") == "gzip" {
 		reader, err := gzip.NewReader(resp.Body)
 		if err != nil {
 			resp.Body.Close()
 		}
-		bodyBytesGunra, err = io.ReadAll(reader)
+		bodyBytesKillSec, err = io.ReadAll(reader)
 		reader.Close()
 		if err != nil {
 			resp.Body.Close()
 		}
 	} else {
-		bodyBytesGunra, err = io.ReadAll(resp.Body)
+		bodyBytesKillSec, err = io.ReadAll(resp.Body)
 		if err != nil {
 			resp.Body.Close()
 		}
 	}
 
-	// fmt.Println("body found")
-	body := string(bodyBytesGunra)
-	// fmt.Println(body)
-	err = json.Unmarshal(bodyBytesGunra, &companies)
+	body := string(bodyBytesKillSec)
+	fmt.Println(body)
+	err = json.Unmarshal(bodyBytesKillSec, &response)
 	if err != nil {
-		fmt.Println("[Gunra] JSON parse error:", err)
-		fmt.Println(string(bodyBytesGunra)) // debug for truncated responses
+		fmt.Println("[KillSec] JSON parse error:", err)
 		return false
 	}
-	for _, c := range companies {
+
+	for _, c := range response.Posts {
 		if strings.Contains(c.Name, query) {
-			url := gunraOnion + "/company/" + c.ID
-			data.Source = "gunra"
+			url := killSecOnion + "post/" + c.ID
+			data.Source = "killSec"
 			data.Key = query
 			data.Url = url
-			data.Desc = "lorem ipsum"
+			data.Desc = "Lorem Ipsum"
 			chanDataForDb <- data
 			fmt.Println(data.Key, data.Url)
+			fmt.Println("[KillSec] Results found")
 		}
 	}
 
 	if !strings.Contains(body, query) {
-		fmt.Println("[Gunra] No results found")
+		fmt.Println("[KillSec] No results found")
 		return false
-	} else {
-		fmt.Println("[Gunra] Results found")
-		return true
 	}
-	//  else {
-	// 	fmt.Println("[Gunra] No data found")
-	// 	return false
-	// }
+
+	return true
 }

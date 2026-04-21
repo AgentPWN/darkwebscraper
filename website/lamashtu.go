@@ -97,6 +97,7 @@ func Lamashtu(query string, chanDataForDb chan utils.DataForDb) bool {
 			data.Desc = c.Desc
 			chanDataForDb <- data
 			fmt.Println(data.Key, data.Url)
+			fmt.Println("[Lamashtu] Results found")
 		}
 	}
 

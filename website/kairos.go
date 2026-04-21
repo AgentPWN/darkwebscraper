@@ -104,7 +104,7 @@ func Kairos(query string, chanDataForDb chan utils.DataForDb) bool {
 		fmt.Println("[Kairos] No results found")
 		return false
 	} else {
-
+		fmt.Println("[Kairos] Results found")
 		return true
 	}
 

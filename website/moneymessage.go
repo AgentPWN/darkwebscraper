@@ -8,19 +8,24 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
 	"golang.org/x/net/proxy"
 )
 
-const gunraOnion = "http://www.lgiil72vkmdtbc3qv4tyq6wedyjxqr2qd4ze7xl2cxgerdnymxj7soqd.onion/"
+type MoneyMessageResponse struct {
+	Posts []utils.CompanyMoneyMessage `json:"posts"`
+}
 
-var gunraClient *http.Client
-var bodyBytesGunra []byte
+const moneyMessageOnion = "http://blogvl7tjyjvsfthobttze52w36wwiz34hrfcmorgvdzb6hikucb7aqd.onion/"
 
-func initGunraClient() error {
-	if gunraClient != nil {
+var moneyMessageClient *http.Client
+var bodyBytesMoneyMessage []byte
+
+func initMoneyMessageClient() error {
+	if moneyMessageClient != nil {
 		return nil
 	}
 
@@ -36,77 +41,71 @@ func initGunraClient() error {
 		},
 	}
 
-	gunraClient = &http.Client{
+	moneyMessageClient = &http.Client{
 		Transport: transport,
 		Timeout:   60 * time.Second,
 	}
 	return nil
 }
 
-func Gunra(query string, chanDataForDb chan utils.DataForDb) bool {
+func MoneyMessage(query string, chanDataForDb chan utils.DataForDb) bool {
 	data := utils.DataForDb{}
-	var companies []utils.CompanyGunra
-	if err := initGunraClient(); err != nil {
-		fmt.Println("[Gunra] init failed:", err)
+	var companies []utils.CompanyMoneyMessage
+
+	if err := initMoneyMessageClient(); err != nil {
+		fmt.Println("[MoneyMessage] init failed:", err)
 		return false
 	}
-	// go run main.go
-	// fmt.Println("[Gunra]")
-	req, _ := http.NewRequest("GET", gunraOnion+"api/public/companies", nil)
+
+	req, _ := http.NewRequest("GET", moneyMessageOnion+"news.php?allNewsPage=1", nil)
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0")
 	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
 	req.Header.Set("Accept-Language", "en-US,en;q=0.5")
 	req.Header.Set("Accept-Encoding", "gzip")
 
-	resp, err := gunraClient.Do(req)
-	// fmt.Println(resp)
+	resp, err := moneyMessageClient.Do(req)
 	if resp.Header.Get("Content-Encoding") == "gzip" {
 		reader, err := gzip.NewReader(resp.Body)
 		if err != nil {
 			resp.Body.Close()
 		}
-		bodyBytesGunra, err = io.ReadAll(reader)
+		bodyBytesMoneyMessage, err = io.ReadAll(reader)
 		reader.Close()
 		if err != nil {
 			resp.Body.Close()
 		}
 	} else {
-		bodyBytesGunra, err = io.ReadAll(resp.Body)
+		bodyBytesMoneyMessage, err = io.ReadAll(resp.Body)
 		if err != nil {
 			resp.Body.Close()
 		}
 	}
 
-	// fmt.Println("body found")
-	body := string(bodyBytesGunra)
-	// fmt.Println(body)
-	err = json.Unmarshal(bodyBytesGunra, &companies)
+	body := string(bodyBytesMoneyMessage)
+
+	err = json.Unmarshal(bodyBytesMoneyMessage, &companies)
 	if err != nil {
-		fmt.Println("[Gunra] JSON parse error:", err)
-		fmt.Println(string(bodyBytesGunra)) // debug for truncated responses
+		fmt.Println("[MoneyMessage] JSON parse error:", err)
 		return false
 	}
+
 	for _, c := range companies {
 		if strings.Contains(c.Name, query) {
-			url := gunraOnion + "/company/" + c.ID
-			data.Source = "gunra"
+			url := moneyMessageOnion + "news.php/?id=" + strconv.Itoa(c.ID)
+			data.Source = "moneyMessage"
 			data.Key = query
 			data.Url = url
-			data.Desc = "lorem ipsum"
+			data.Desc = "Lorem Ipsum"
 			chanDataForDb <- data
 			fmt.Println(data.Key, data.Url)
+			fmt.Println("[MoneyMessage] Results found")
 		}
 	}
 
 	if !strings.Contains(body, query) {
-		fmt.Println("[Gunra] No results found")
+		fmt.Println("[MoneyMessage] No results found")
 		return false
-	} else {
-		fmt.Println("[Gunra] Results found")
-		return true
 	}
-	//  else {
-	// 	fmt.Println("[Gunra] No data found")
-	// 	return false
-	// }
+
+	return true
 }

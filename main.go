@@ -29,8 +29,12 @@ func main() {
 		// website.Everest,
 		// website.Ransomexx,
 		// website.Kairos,
-		// website.Kyber, this won't work as this has captcha, if this captcha can be solved, the website can be scraped
-		website.Lamashtu,
+		// website.Kyber, // this won't work as this has captcha, if this captcha can be solved, the website can be scraped
+		// website.Lamashtu,
+		// website.Linkcpub,
+		// website.KillSec,
+		// website.Lynx,
+		website.MoneyMessage,
 	}
 	var wg sync.WaitGroup
 	chanAddDataToDb := make(chan utils.DataForDb, 100)
