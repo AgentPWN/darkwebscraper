@@ -67,3 +67,9 @@ type CompanyTermite struct {
 	Name string `json:"title"`
 	Desc string `json:"description"`
 }
+
+type CompanyWarlock struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+	Desc string `json:"description"`
+}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"darkwebscraper/utils"
+	"darkwebscraper/website"
 	"os"
 	"strings"
 	"sync"
@@ -37,6 +38,7 @@ func main() {
 		// website.Morpheus,
 		// website.Sinobi,
 		// website.Termite,
+		website.Warlock,
 	}
 	var wg sync.WaitGroup
 	chanAddDataToDb := make(chan utils.DataForDb, 100)

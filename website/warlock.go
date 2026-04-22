@@ -8,23 +8,22 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
 	"golang.org/x/net/proxy"
 )
 
-// type TermiteResponse struct {
-// 	Posts []utils.CompanyTermite `json:"posts"`
-// }
+// the links provided in this website to access data do not work
 
-const termiteOnion = "http://termitelfvhutinrgpe55siktisskbqntkuq7ojidg42zh26avekq6qd.onion/"
+const warlockOnion = "http://warlock4fagqhnfuxtcmncfepe3jc33e33dmj2jsk64svxaerm5zhaqd.onion/"
 
-var termiteClient *http.Client
-var bodyBytesTermite []byte
+var warlockClient *http.Client
+var bodyBytesWarlock []byte
 
-func initTermiteClient() error {
-	if termiteClient != nil {
+func initWarlockClient() error {
+	if warlockClient != nil {
 		return nil
 	}
 
@@ -40,69 +39,69 @@ func initTermiteClient() error {
 		},
 	}
 
-	termiteClient = &http.Client{
+	warlockClient = &http.Client{
 		Transport: transport,
 		Timeout:   60 * time.Second,
 	}
 	return nil
 }
 
-func Termite(query string, chanDataForDb chan utils.DataForDb) bool {
+func Warlock(query string, chanDataForDb chan utils.DataForDb) bool {
 	data := utils.DataForDb{}
-	var companies []utils.CompanyTermite
+	var companies []utils.CompanyWarlock
 
-	if err := initTermiteClient(); err != nil {
-		fmt.Println("[Termite] init failed:", err)
+	if err := initWarlockClient(); err != nil {
+		fmt.Println("[Warlock] init failed:", err)
 		return false
 	}
 
-	req, _ := http.NewRequest("GET", termiteOnion+"api/blog/blogs", nil)
+	req, _ := http.NewRequest("GET", warlockOnion+"api?action=get_public_clients", nil)
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0")
 	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
 	req.Header.Set("Accept-Language", "en-US,en;q=0.5")
 	req.Header.Set("Accept-Encoding", "gzip")
 
-	resp, err := termiteClient.Do(req)
+	resp, err := warlockClient.Do(req)
 	if resp.Header.Get("Content-Encoding") == "gzip" {
 		reader, err := gzip.NewReader(resp.Body)
 		if err != nil {
 			resp.Body.Close()
 		}
-		bodyBytesTermite, err = io.ReadAll(reader)
+		bodyBytesWarlock, err = io.ReadAll(reader)
 		reader.Close()
 		if err != nil {
 			resp.Body.Close()
 		}
 	} else {
-		bodyBytesTermite, err = io.ReadAll(resp.Body)
+		bodyBytesWarlock, err = io.ReadAll(resp.Body)
 		if err != nil {
 			resp.Body.Close()
 		}
 	}
 
-	body := string(bodyBytesTermite)
+	body := string(bodyBytesWarlock)
 
-	err = json.Unmarshal(bodyBytesTermite, &companies)
+	err = json.Unmarshal(bodyBytesWarlock, &companies)
 	if err != nil {
-		fmt.Println("[Termite] JSON parse error:", err)
+		fmt.Println("[Warlock] JSON parse error:", err)
 		return false
 	}
 
 	for _, c := range companies {
 		if strings.Contains(c.Name, query) || strings.Contains(c.Desc, query) {
-			url := termiteOnion + "post/" + c.ID
-			data.Source = "termite"
+			url := warlockOnion + "files.html?clientId=" + strconv.Itoa(c.ID)
+			data.Source = "warlock"
 			data.Key = query
 			data.Url = url
 			data.Desc = c.Desc
 			chanDataForDb <- data
 			fmt.Println(data.Key, data.Url)
-			fmt.Println("[Termite] Results found")
+			fmt.Println("[Warlock] Results found")
 		}
 	}
 
 	if !strings.Contains(body, query) {
-		fmt.Println("[Termite] No results found")
+		fmt.Println("[Warlock] No results found")
 		return false
 	}
 
