@@ -2,7 +2,6 @@ package main
 
 import (
 	"darkwebscraper/utils"
-	"darkwebscraper/website"
 	"os"
 	"strings"
 	"sync"
@@ -32,9 +31,12 @@ func main() {
 		// website.Kyber, // this won't work as this has captcha, if this captcha can be solved, the website can be scraped
 		// website.Lamashtu,
 		// website.Linkcpub,
-		// website.KillSec,
+		// website.KillSec, // this won't work as this has captcha, if this captcha can be solved, the website can be scraped
 		// website.Lynx,
-		website.MoneyMessage,
+		// website.MoneyMessage,
+		// website.Morpheus,
+		// website.Sinobi,
+		// website.Termite,
 	}
 	var wg sync.WaitGroup
 	chanAddDataToDb := make(chan utils.DataForDb, 100)

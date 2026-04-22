@@ -48,3 +48,22 @@ type CompanyMoneyMessage struct {
 	ID   int    `json:"pageId"`
 	Name string `json:"name"`
 }
+
+type CompanyMorpheus struct {
+	ID   int    `json:"id"`
+	Name string `json:"title"`
+}
+
+type CompanySinobi struct {
+	ID      string `json:"_id"`
+	Company struct {
+		Name string `json:"company_name"`
+	} `json:"company"`
+	Desc []string `json:"description"`
+}
+
+type CompanyTermite struct {
+	ID   string `json:"_id"`
+	Name string `json:"title"`
+	Desc string `json:"description"`
+}

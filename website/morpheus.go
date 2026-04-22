@@ -8,24 +8,23 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
 	"golang.org/x/net/proxy"
 )
 
-// type MoneyMessageResponse struct {
-// 	Posts []utils.CompanyMoneyMessage `json:"posts"`
-// }
+type MorpheusResponse struct {
+	Posts []utils.CompanyMorpheus `json:"items"`
+}
 
-const moneyMessageOnion = "http://blogvl7tjyjvsfthobttze52w36wwiz34hrfcmorgvdzb6hikucb7aqd.onion/"
+const morpheusOnion = "http://izsp6ipui4ctgxfugbgtu65kzefrucltyfpbxplmfybl5swiadpljmyd.onion/"
 
-var moneyMessageClient *http.Client
-var bodyBytesMoneyMessage []byte
+var morpheusClient *http.Client
+var bodyBytesMorpheus []byte
 
-func initMoneyMessageClient() error {
-	if moneyMessageClient != nil {
+func initMorpheusClient() error {
+	if morpheusClient != nil {
 		return nil
 	}
 
@@ -41,69 +40,69 @@ func initMoneyMessageClient() error {
 		},
 	}
 
-	moneyMessageClient = &http.Client{
+	morpheusClient = &http.Client{
 		Transport: transport,
 		Timeout:   60 * time.Second,
 	}
 	return nil
 }
 
-func MoneyMessage(query string, chanDataForDb chan utils.DataForDb) bool {
+func Morpheus(query string, chanDataForDb chan utils.DataForDb) bool {
 	data := utils.DataForDb{}
-	var companies []utils.CompanyMoneyMessage
+	var response MorpheusResponse
 
-	if err := initMoneyMessageClient(); err != nil {
-		fmt.Println("[MoneyMessage] init failed:", err)
+	if err := initMorpheusClient(); err != nil {
+		fmt.Println("[Morpheus] init failed:", err)
 		return false
 	}
 
-	req, _ := http.NewRequest("GET", moneyMessageOnion+"news.php?allNewsPage=1", nil)
+	req, _ := http.NewRequest("GET", morpheusOnion+"intrumpwetrust/api/posts?page=1&perPage=50", nil)
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0")
 	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
 	req.Header.Set("Accept-Language", "en-US,en;q=0.5")
 	req.Header.Set("Accept-Encoding", "gzip")
 
-	resp, err := moneyMessageClient.Do(req)
+	resp, err := morpheusClient.Do(req)
 	if resp.Header.Get("Content-Encoding") == "gzip" {
 		reader, err := gzip.NewReader(resp.Body)
 		if err != nil {
 			resp.Body.Close()
 		}
-		bodyBytesMoneyMessage, err = io.ReadAll(reader)
+		bodyBytesMorpheus, err = io.ReadAll(reader)
 		reader.Close()
 		if err != nil {
 			resp.Body.Close()
 		}
 	} else {
-		bodyBytesMoneyMessage, err = io.ReadAll(resp.Body)
+		bodyBytesMorpheus, err = io.ReadAll(resp.Body)
 		if err != nil {
 			resp.Body.Close()
 		}
 	}
 
-	body := string(bodyBytesMoneyMessage)
+	body := string(bodyBytesMorpheus)
 
-	err = json.Unmarshal(bodyBytesMoneyMessage, &companies)
+	err = json.Unmarshal(bodyBytesMorpheus, &response)
 	if err != nil {
-		fmt.Println("[MoneyMessage] JSON parse error:", err)
+		fmt.Println("[Morpheus] JSON parse error:", err)
 		return false
 	}
 
-	for _, c := range companies {
+	for _, c := range response.Posts {
 		if strings.Contains(c.Name, query) {
-			url := moneyMessageOnion + "news.php/?id=" + strconv.Itoa(c.ID)
-			data.Source = "moneyMessage"
+			url := morpheusOnion
+			data.Source = "morpheus"
 			data.Key = query
 			data.Url = url
 			data.Desc = "Lorem Ipsum"
 			chanDataForDb <- data
 			fmt.Println(data.Key, data.Url)
-			fmt.Println("[MoneyMessage] Results found")
+			fmt.Println("[Morpheus] Results found")
 		}
 	}
 
 	if !strings.Contains(body, query) {
-		fmt.Println("[MoneyMessage] No results found")
+		fmt.Println("[Morpheus] No results found")
 		return false
 	}
 

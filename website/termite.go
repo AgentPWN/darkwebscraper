@@ -8,24 +8,23 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
 	"golang.org/x/net/proxy"
 )
 
-// type MoneyMessageResponse struct {
-// 	Posts []utils.CompanyMoneyMessage `json:"posts"`
+// type TermiteResponse struct {
+// 	Posts []utils.CompanyTermite `json:"posts"`
 // }
 
-const moneyMessageOnion = "http://blogvl7tjyjvsfthobttze52w36wwiz34hrfcmorgvdzb6hikucb7aqd.onion/"
+const termiteOnion = "http://termitelfvhutinrgpe55siktisskbqntkuq7ojidg42zh26avekq6qd.onion/"
 
-var moneyMessageClient *http.Client
-var bodyBytesMoneyMessage []byte
+var termiteClient *http.Client
+var bodyBytesTermite []byte
 
-func initMoneyMessageClient() error {
-	if moneyMessageClient != nil {
+func initTermiteClient() error {
+	if termiteClient != nil {
 		return nil
 	}
 
@@ -41,69 +40,69 @@ func initMoneyMessageClient() error {
 		},
 	}
 
-	moneyMessageClient = &http.Client{
+	termiteClient = &http.Client{
 		Transport: transport,
 		Timeout:   60 * time.Second,
 	}
 	return nil
 }
 
-func MoneyMessage(query string, chanDataForDb chan utils.DataForDb) bool {
+func Termite(query string, chanDataForDb chan utils.DataForDb) bool {
 	data := utils.DataForDb{}
-	var companies []utils.CompanyMoneyMessage
+	var companies []utils.CompanyTermite
 
-	if err := initMoneyMessageClient(); err != nil {
-		fmt.Println("[MoneyMessage] init failed:", err)
+	if err := initTermiteClient(); err != nil {
+		fmt.Println("[Termite] init failed:", err)
 		return false
 	}
 
-	req, _ := http.NewRequest("GET", moneyMessageOnion+"news.php?allNewsPage=1", nil)
+	req, _ := http.NewRequest("GET", termiteOnion+"api/blog/blogs", nil)
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0")
 	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
 	req.Header.Set("Accept-Language", "en-US,en;q=0.5")
 	req.Header.Set("Accept-Encoding", "gzip")
 
-	resp, err := moneyMessageClient.Do(req)
+	resp, err := termiteClient.Do(req)
 	if resp.Header.Get("Content-Encoding") == "gzip" {
 		reader, err := gzip.NewReader(resp.Body)
 		if err != nil {
 			resp.Body.Close()
 		}
-		bodyBytesMoneyMessage, err = io.ReadAll(reader)
+		bodyBytesTermite, err = io.ReadAll(reader)
 		reader.Close()
 		if err != nil {
 			resp.Body.Close()
 		}
 	} else {
-		bodyBytesMoneyMessage, err = io.ReadAll(resp.Body)
+		bodyBytesTermite, err = io.ReadAll(resp.Body)
 		if err != nil {
 			resp.Body.Close()
 		}
 	}
 
-	body := string(bodyBytesMoneyMessage)
+	body := string(bodyBytesTermite)
 
-	err = json.Unmarshal(bodyBytesMoneyMessage, &companies)
+	err = json.Unmarshal(bodyBytesTermite, &companies)
 	if err != nil {
-		fmt.Println("[MoneyMessage] JSON parse error:", err)
+		fmt.Println("[Termite] JSON parse error:", err)
 		return false
 	}
 
 	for _, c := range companies {
-		if strings.Contains(c.Name, query) {
-			url := moneyMessageOnion + "news.php/?id=" + strconv.Itoa(c.ID)
-			data.Source = "moneyMessage"
+		if strings.Contains(c.Name, query) || strings.Contains(c.Desc, query) {
+			url := termiteOnion + "post/" + c.ID
+			data.Source = "termite"
 			data.Key = query
 			data.Url = url
 			data.Desc = "Lorem Ipsum"
 			chanDataForDb <- data
 			fmt.Println(data.Key, data.Url)
-			fmt.Println("[MoneyMessage] Results found")
+			fmt.Println("[Termite] Results found")
 		}
 	}
 
 	if !strings.Contains(body, query) {
-		fmt.Println("[MoneyMessage] No results found")
+		fmt.Println("[Termite] No results found")
 		return false
 	}
 
