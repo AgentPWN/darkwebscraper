@@ -47,13 +47,12 @@ func initMorpheusClient() error {
 	return nil
 }
 
-func Morpheus(query string, chanDataForDb chan utils.DataForDb) bool {
+func Morpheus(channel chan string, chanDataForDb chan utils.DataForDb) {
 	data := utils.DataForDb{}
 	var response MorpheusResponse
 
 	if err := initMorpheusClient(); err != nil {
 		fmt.Println("[Morpheus] init failed:", err)
-		return false
 	}
 
 	req, _ := http.NewRequest("GET", morpheusOnion+"intrumpwetrust/api/posts?page=1&perPage=50", nil)
@@ -80,31 +79,27 @@ func Morpheus(query string, chanDataForDb chan utils.DataForDb) bool {
 		}
 	}
 
-	body := string(bodyBytesMorpheus)
+	// body := string(bodyBytesMorpheus)
 
 	err = json.Unmarshal(bodyBytesMorpheus, &response)
 	if err != nil {
 		fmt.Println("[Morpheus] JSON parse error:", err)
-		return false
 	}
+	for query := range channel {
+		query = strings.TrimSpace(query)
 
-	for _, c := range response.Posts {
-		if strings.Contains(c.Name, query) {
-			url := morpheusOnion
-			data.Source = "morpheus"
-			data.Key = query
-			data.Url = url
-			data.Desc = "Lorem Ipsum"
-			chanDataForDb <- data
-			fmt.Println(data.Key, data.Url)
-			fmt.Println("[Morpheus] Results found")
+		for _, c := range response.Posts {
+			if strings.Contains(c.Name, query) {
+				url := morpheusOnion
+				data.Source = "morpheus"
+				data.Key = query
+				data.Url = url
+				data.Desc = "Lorem Ipsum"
+				chanDataForDb <- data
+				fmt.Println(data.Key, data.Url)
+				fmt.Println("[Morpheus] Results found")
+			}
 		}
-	}
 
-	if !strings.Contains(body, query) {
-		fmt.Println("[Morpheus] No results found")
-		return false
 	}
-
-	return true
 }

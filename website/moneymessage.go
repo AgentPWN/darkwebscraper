@@ -48,13 +48,12 @@ func initMoneyMessageClient() error {
 	return nil
 }
 
-func MoneyMessage(query string, chanDataForDb chan utils.DataForDb) bool {
+func MoneyMessage(channel chan string, chanDataForDb chan utils.DataForDb) {
 	data := utils.DataForDb{}
 	var companies []utils.CompanyMoneyMessage
 
 	if err := initMoneyMessageClient(); err != nil {
 		fmt.Println("[MoneyMessage] init failed:", err)
-		return false
 	}
 
 	req, _ := http.NewRequest("GET", moneyMessageOnion+"news.php?allNewsPage=1", nil)
@@ -81,31 +80,23 @@ func MoneyMessage(query string, chanDataForDb chan utils.DataForDb) bool {
 		}
 	}
 
-	body := string(bodyBytesMoneyMessage)
-
 	err = json.Unmarshal(bodyBytesMoneyMessage, &companies)
 	if err != nil {
 		fmt.Println("[MoneyMessage] JSON parse error:", err)
-		return false
 	}
-
-	for _, c := range companies {
-		if strings.Contains(c.Name, query) {
-			url := moneyMessageOnion + "news.php/?id=" + strconv.Itoa(c.ID)
-			data.Source = "moneyMessage"
-			data.Key = query
-			data.Url = url
-			data.Desc = "Lorem Ipsum"
-			chanDataForDb <- data
-			fmt.Println(data.Key, data.Url)
-			fmt.Println("[MoneyMessage] Results found")
+	for query := range channel {
+		query = strings.TrimSpace(query)
+		for _, c := range companies {
+			if strings.Contains(c.Name, query) {
+				url := moneyMessageOnion + "news.php/?id=" + strconv.Itoa(c.ID)
+				data.Source = "moneyMessage"
+				data.Key = query
+				data.Url = url
+				data.Desc = "Lorem Ipsum"
+				chanDataForDb <- data
+				fmt.Println(data.Key, data.Url)
+				fmt.Println("[MoneyMessage] Results found")
+			}
 		}
 	}
-
-	if !strings.Contains(body, query) {
-		fmt.Println("[MoneyMessage] No results found")
-		return false
-	}
-
-	return true
 }

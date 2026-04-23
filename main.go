@@ -31,7 +31,7 @@ func main() {
 		// website.Lamashtu,
 		// website.Linkcpub,
 		// website.Lynx,
-		// website.MoneyMessage,
+		website.MoneyMessage,
 		// website.Morpheus,
 		website.Sinobi,
 		website.Termite,
