@@ -108,7 +108,7 @@ func Lynx(query string, chanDataForDb chan utils.DataForDb) bool {
 			data.Source = "lynx"
 			data.Key = query
 			data.Url = url
-			data.Desc = strings.Join(c.Description, " ")
+			data.Desc = strings.Join(c.Desc, " ")
 			chanDataForDb <- data
 			fmt.Println(data.Key, data.Url)
 			fmt.Println("[Lynx] Results found")

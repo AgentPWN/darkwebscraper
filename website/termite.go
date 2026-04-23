@@ -47,13 +47,12 @@ func initTermiteClient() error {
 	return nil
 }
 
-func Termite(query string, chanDataForDb chan utils.DataForDb) bool {
+func Termite(channel chan string, chanDataForDb chan utils.DataForDb) {
 	data := utils.DataForDb{}
 	var companies []utils.CompanyTermite
 
 	if err := initTermiteClient(); err != nil {
 		fmt.Println("[Termite] init failed:", err)
-		return false
 	}
 
 	req, _ := http.NewRequest("GET", termiteOnion+"api/blog/blogs", nil)
@@ -80,31 +79,33 @@ func Termite(query string, chanDataForDb chan utils.DataForDb) bool {
 		}
 	}
 
-	body := string(bodyBytesTermite)
+	// body := string(bodyBytesTermite)
 
 	err = json.Unmarshal(bodyBytesTermite, &companies)
 	if err != nil {
 		fmt.Println("[Termite] JSON parse error:", err)
-		return false
 	}
+	for query := range channel {
+		// fmt.Println(query)
+		query = strings.TrimSpace(query)
 
-	for _, c := range companies {
-		if strings.Contains(c.Name, query) || strings.Contains(c.Desc, query) {
-			url := termiteOnion + "post/" + c.ID
-			data.Source = "termite"
-			data.Key = query
-			data.Url = url
-			data.Desc = c.Desc
-			chanDataForDb <- data
-			fmt.Println(data.Key, data.Url)
-			fmt.Println("[Termite] Results found")
+		for _, c := range companies {
+			if strings.Contains(c.Name, query) || strings.Contains(c.Desc, query) {
+				url := termiteOnion + "post/" + c.ID
+				data.Source = "termite"
+				data.Key = query
+				data.Url = url
+				data.Desc = c.Desc
+				chanDataForDb <- data
+				fmt.Println(data.Key, data.Url)
+				fmt.Println("[Termite] Results found")
+			}
 		}
+		// if !strings.Contains(body, query) {
+		// 	fmt.Println("[Termite] No results found")
+		// 	continue
+		// }
 	}
 
-	if !strings.Contains(body, query) {
-		fmt.Println("[Termite] No results found")
-		return false
-	}
-
-	return true
+	// return true
 }

@@ -10,7 +10,7 @@ type CompanyIncRansom struct {
 	Company struct {
 		Name string `json:"company_name"`
 	} `json:"company"`
-	Description []string `json:"description"`
+	Desc []string `json:"description"`
 }
 
 type CompanyKairos struct {
@@ -41,7 +41,7 @@ type CompanyLynx struct {
 	Company struct {
 		Name string `json:"company_name"`
 	} `json:"company"`
-	Description []string `json:"description"`
+	Desc []string `json:"description"`
 }
 
 type CompanyMoneyMessage struct {

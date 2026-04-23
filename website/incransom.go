@@ -102,7 +102,8 @@ func IncRansom(query string, chanDataForDb chan utils.DataForDb) bool {
 				data.Source = "incRansom"
 				data.Key = query
 				data.Url = url
-				data.Desc = strings.Join(c.Description, " ") // description is []string
+				desc, _ := utils.URLDecode(strings.Join(c.Desc, " "))
+				data.Desc = desc // description is []string
 				chanDataForDb <- data
 				fmt.Println(data.Key, data.Url)
 				fmt.Println("[IncRansom] Result found")

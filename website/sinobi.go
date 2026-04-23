@@ -49,13 +49,12 @@ func initSinobiClient() error {
 	return nil
 }
 
-func Sinobi(query string, chanDataForDb chan utils.DataForDb) bool {
+func Sinobi(channel chan string, chanDataForDb chan utils.DataForDb) {
 	data := utils.DataForDb{}
 	var response SinobiResponse
 
 	if err := initSinobiClient(); err != nil {
 		fmt.Println("[Sinobi] init failed:", err)
-		return false
 	}
 
 	req, _ := http.NewRequest("GET", sinobiOnion+"api/v1/blog/get/announcements?page=1&perPage=300", nil)
@@ -67,7 +66,6 @@ func Sinobi(query string, chanDataForDb chan utils.DataForDb) bool {
 	resp, err := sinobiClient.Do(req)
 	if err != nil {
 		fmt.Println("[Sinobi] request failed:", err)
-		return false
 	}
 	defer resp.Body.Close()
 
@@ -75,45 +73,46 @@ func Sinobi(query string, chanDataForDb chan utils.DataForDb) bool {
 		reader, err := gzip.NewReader(resp.Body)
 		if err != nil {
 			fmt.Println("[Sinobi] gzip reader error:", err)
-			return false
 		}
 		bodyBytesSinobi, err = io.ReadAll(reader)
 		reader.Close()
 		if err != nil {
 			fmt.Println("[Sinobi] gzip read error:", err)
-			return false
 		}
 	} else {
 		bodyBytesSinobi, err = io.ReadAll(resp.Body)
 		if err != nil {
 			fmt.Println("[Sinobi] body read error:", err)
-			return false
 		}
 	}
 
 	err = json.Unmarshal(bodyBytesSinobi, &response)
 	if err != nil {
 		fmt.Println("[Sinobi] JSON parse error:", err)
-		return false
 	}
 
 	found := false
-	for _, c := range response.Payload.Posts {
-		if strings.Contains(strings.ToLower(c.Company.Name), strings.ToLower(query)) {
-			data.Source = "sinobi"
-			data.Key = query
-			data.Url = sinobiOnion
-			data.Desc = strings.Join(c.Desc, " ")
-			chanDataForDb <- data
-			fmt.Println(data.Key, data.Url)
-			fmt.Println("[Sinobi] Results found")
-			found = true
+	for query := range channel {
+		query = strings.TrimSpace(query)
+		// fmt.Println(bodyBytesSinobi)
+		for _, c := range response.Payload.Posts {
+			if strings.Contains(strings.ToLower(c.Company.Name), strings.ToLower(query)) {
+				data.Source = "sinobi"
+				data.Key = query
+				data.Url = sinobiOnion
+				desc, _ := utils.URLDecode(strings.Join(c.Desc, " "))
+				data.Desc = desc
+				chanDataForDb <- data
+				fmt.Println(data.Key, data.Url)
+				fmt.Println("[Sinobi] Results found")
+				found = true
+			}
 		}
+
 	}
 
 	if !found {
 		fmt.Println("[Sinobi] No results found")
 	}
 
-	return found
 }

@@ -46,13 +46,12 @@ func initWarlockClient() error {
 	return nil
 }
 
-func Warlock(query string, chanDataForDb chan utils.DataForDb) bool {
+func Warlock(channel chan string, chanDataForDb chan utils.DataForDb) {
 	data := utils.DataForDb{}
 	var companies []utils.CompanyWarlock
 
 	if err := initWarlockClient(); err != nil {
 		fmt.Println("[Warlock] init failed:", err)
-		return false
 	}
 
 	req, _ := http.NewRequest("GET", warlockOnion+"api?action=get_public_clients", nil)
@@ -79,31 +78,30 @@ func Warlock(query string, chanDataForDb chan utils.DataForDb) bool {
 		}
 	}
 
-	body := string(bodyBytesWarlock)
+	// body := string(bodyBytesWarlock)
 
 	err = json.Unmarshal(bodyBytesWarlock, &companies)
 	if err != nil {
 		fmt.Println("[Warlock] JSON parse error:", err)
-		return false
 	}
+	for query := range channel {
+		query = strings.TrimSpace(query)
 
-	for _, c := range companies {
-		if strings.Contains(c.Name, query) || strings.Contains(c.Desc, query) {
-			url := warlockOnion + "files.html?clientId=" + strconv.Itoa(c.ID)
-			data.Source = "warlock"
-			data.Key = query
-			data.Url = url
-			data.Desc = c.Desc
-			chanDataForDb <- data
-			fmt.Println(data.Key, data.Url)
-			fmt.Println("[Warlock] Results found")
+		for _, c := range companies {
+			if strings.Contains(c.Name, query) || strings.Contains(c.Desc, query) {
+				url := warlockOnion + "files.html?clientId=" + strconv.Itoa(c.ID)
+				data.Source = "warlock"
+				data.Key = query
+				data.Url = url
+				data.Desc = c.Desc
+				chanDataForDb <- data
+				fmt.Println(data.Key, data.Url)
+				fmt.Println("[Warlock] Results found")
+			}
 		}
+		// if !strings.Contains(body, query) {
+		// 	fmt.Println("[Warlock] No results found")
+		// }
 	}
 
-	if !strings.Contains(body, query) {
-		fmt.Println("[Warlock] No results found")
-		return false
-	}
-
-	return true
 }
