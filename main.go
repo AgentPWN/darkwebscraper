@@ -21,11 +21,6 @@ func main() {
 		// website.KillSec, // this won't work as this has captcha, if this captcha can be solved, the website can be scraped
 		// website.Gunra, // has gone down
 		// website.IncRansom,
-		// website.Dread,
-		// website.Lockbit,
-		// website.Darknet,
-		// website.Everest,
-		// website.Ransomexx,
 		// website.Kairos,
 		// website.Lamashtu,
 		// website.Linkcpub,
@@ -35,6 +30,12 @@ func main() {
 		// website.Termite,
 		// website.Warlock,
 		// website.Morpheus,
+		// website.Dread,
+		// website.Lockbit,
+		// website.Darknet,
+		// website.Everest,
+		// website.Ransomexx,
+
 	}
 	var wg sync.WaitGroup
 	chanList := make([]chan string, len(funcs))

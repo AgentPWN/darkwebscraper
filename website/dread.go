@@ -106,15 +106,15 @@ func initDreadClient() error {
 	return nil
 }
 
-func Dread(query string, chanDataForDb chan utils.DataForDb) bool {
+func Dread(channel chan string, chanDataForDb chan utils.DataForDb) {
 	data := utils.DataForDb{}
 	if err := initDreadClient(); err != nil {
 		panic(err)
 	}
+	for query := range channel {
+		query = strings.TrimSpace(query)
+		targetURL := dreadOnion + "/search/?q=" + url.QueryEscape(query)
 
-	targetURL := dreadOnion + "/search/?q=" + url.QueryEscape(query)
-
-	for {
 		req, _ := http.NewRequest("GET", targetURL, nil)
 		req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0")
 		req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
@@ -154,7 +154,6 @@ func Dread(query string, chanDataForDb chan utils.DataForDb) bool {
 		switch {
 		case strings.Contains(body, "No results"):
 			fmt.Println("[Dread] no results")
-			return false
 
 		case strings.Contains(body, "Exactly"):
 			fmt.Println("[Dread] Found result")
@@ -168,12 +167,13 @@ func Dread(query string, chanDataForDb chan utils.DataForDb) bool {
 				data.Desc = "lorem ipsum"
 				chanDataForDb <- data
 			}
-			return true
+			// case strings.Contains(body, "queue"):
+			// 	fmt.Println("[Dread] still in queue, retrying…")
+			// 	continue
+			// }
 
-		case strings.Contains(body, "queue"):
-			fmt.Println("[Dread] still in queue, retrying…")
-			time.Sleep(time.Duration(8+rand.Intn(5)) * time.Second)
-			continue
 		}
+
+		time.Sleep(time.Duration(8+rand.Intn(5)) * time.Second)
 	}
 }
