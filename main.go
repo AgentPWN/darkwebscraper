@@ -21,7 +21,7 @@ func main() {
 		// website.Kyber, // this won't work as this has captcha, if this captcha can be solved, the website can be scraped
 		// website.KillSec, // this won't work as this has captcha, if this captcha can be solved, the website can be scraped
 		// website.Gunra,
-		// website.IncRansom,
+		website.IncRansom,
 		// website.Dread,
 		// website.Lockbit,
 		// website.Darknet,
