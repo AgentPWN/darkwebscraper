@@ -2,7 +2,6 @@ package main
 
 import (
 	"darkwebscraper/utils"
-	"darkwebscraper/website"
 	"os"
 	"strings"
 	"sync"
@@ -20,14 +19,14 @@ func main() {
 	funcs := []func(chanList chan string, chanAddDataToDb chan utils.DataForDb){
 		// website.Kyber, // this won't work as this has captcha, if this captcha can be solved, the website can be scraped
 		// website.KillSec, // this won't work as this has captcha, if this captcha can be solved, the website can be scraped
-		// website.Gunra,
-		website.IncRansom,
+		// website.Gunra, // has gone down
+		// website.IncRansom,
 		// website.Dread,
 		// website.Lockbit,
 		// website.Darknet,
 		// website.Everest,
 		// website.Ransomexx,
-		website.Kairos,
+		// website.Kairos,
 		// website.Lamashtu,
 		// website.Linkcpub,
 		// website.Lynx,

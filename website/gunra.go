@@ -43,12 +43,11 @@ func initGunraClient() error {
 	return nil
 }
 
-func Gunra(query string, chanDataForDb chan utils.DataForDb) bool {
+func Gunra(channel chan string, chanDataForDb chan utils.DataForDb) {
 	data := utils.DataForDb{}
 	var companies []utils.CompanyGunra
 	if err := initGunraClient(); err != nil {
 		fmt.Println("[Gunra] init failed:", err)
-		return false
 	}
 	// go run main.go
 	// fmt.Println("[Gunra]")
@@ -78,35 +77,25 @@ func Gunra(query string, chanDataForDb chan utils.DataForDb) bool {
 	}
 
 	// fmt.Println("body found")
-	body := string(bodyBytesGunra)
 	// fmt.Println(body)
 	err = json.Unmarshal(bodyBytesGunra, &companies)
 	if err != nil {
 		fmt.Println("[Gunra] JSON parse error:", err)
 		fmt.Println(string(bodyBytesGunra)) // debug for truncated responses
-		return false
 	}
-	for _, c := range companies {
-		if strings.Contains(c.Name, query) {
-			url := gunraOnion + "/company/" + c.ID
-			data.Source = "gunra"
-			data.Key = query
-			data.Url = url
-			data.Desc = "lorem ipsum"
-			chanDataForDb <- data
-			fmt.Println(data.Key, data.Url)
+	for query := range channel {
+		query = strings.TrimSpace(query)
+		for _, c := range companies {
+			if strings.Contains(c.Name, query) {
+				url := gunraOnion + "/company/" + c.ID
+				data.Source = "gunra"
+				data.Key = query
+				data.Url = url
+				data.Desc = "lorem ipsum"
+				chanDataForDb <- data
+				fmt.Println(data.Key, data.Url)
+			}
+
 		}
 	}
-
-	if !strings.Contains(body, query) {
-		fmt.Println("[Gunra] No results found")
-		return false
-	} else {
-		fmt.Println("[Gunra] Results found")
-		return true
-	}
-	//  else {
-	// 	fmt.Println("[Gunra] No data found")
-	// 	return false
-	// }
 }
