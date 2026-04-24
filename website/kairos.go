@@ -44,16 +44,15 @@ func initKairosClient() error {
 	return nil
 }
 
-func Kairos(query string, chanDataForDb chan utils.DataForDb) bool {
+func Kairos(channel chan string, chanDataForDb chan utils.DataForDb) {
 	data := utils.DataForDb{}
 	var companies []utils.CompanyKairos
 	if err := initKairosClient(); err != nil {
 		fmt.Println("[Kairos] init failed:", err)
-		return false
 	}
 	// go run main.go
 	// fmt.Println("[Kairos]")
-	req, _ := http.NewRequest("GET", kairosOnion+"/services/search?q="+query, nil)
+	req, _ := http.NewRequest("GET", kairosOnion+"/services/search?q=", nil)
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0")
 	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
 	req.Header.Set("Accept-Language", "en-US,en;q=0.5")
@@ -79,33 +78,25 @@ func Kairos(query string, chanDataForDb chan utils.DataForDb) bool {
 	}
 
 	// fmt.Println("body found")
-	body := string(bodyBytesKairos)
 	// fmt.Println(body)
 	err = json.Unmarshal(bodyBytesKairos, &companies)
 	if err != nil {
 		fmt.Println("[Kairos] JSON parse error:", err)
 		// fmt.Println(string(bodyBytesKairos))
 		// debug for truncated responses
-		return false
 	}
-	for _, c := range companies {
-		if strings.Contains(c.Name, query) {
-			url := kairosOnion + "service/" + strconv.Itoa(c.ID) + "?page=1"
-			data.Source = "kairos"
-			data.Key = query
-			data.Url = url
-			data.Desc = c.Desc
-			chanDataForDb <- data
-			fmt.Println(data.Key, data.Url)
+	for query := range channel {
+		query = strings.TrimSpace(query)
+		for _, c := range companies {
+			if strings.Contains(c.Name, query) {
+				url := kairosOnion + "service/" + strconv.Itoa(c.ID) + "?page=1"
+				data.Source = "kairos"
+				data.Key = query
+				data.Url = url
+				data.Desc = c.Desc
+				chanDataForDb <- data
+				fmt.Println("[Kairos] Results found:", data.Key, data.Url)
+			}
 		}
 	}
-
-	if !strings.Contains(body, query) {
-		fmt.Println("[Kairos] No results found")
-		return false
-	} else {
-		fmt.Println("[Kairos] Results found")
-		return true
-	}
-
 }

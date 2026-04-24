@@ -44,12 +44,11 @@ func initIncRansomClient() error {
 	return nil
 }
 
-func IncRansom(query string, chanDataForDb chan utils.DataForDb) bool {
+func IncRansom(channel chan string, chanDataForDb chan utils.DataForDb) {
 	data := utils.DataForDb{}
 	var companies []utils.CompanyIncRansom // changed from utils.Company
 	if err := initIncRansomClient(); err != nil {
 		fmt.Println("[IncRansom] init failed:", err)
-		return false
 	}
 
 	req, _ := http.NewRequest("GET", incRansomOnionApi+"api/v1/blog/get/announcements?page=1&perPage=1000", nil)
@@ -76,8 +75,6 @@ func IncRansom(query string, chanDataForDb chan utils.DataForDb) bool {
 		}
 	}
 
-	body := string(bodyBytesIncRansom)
-
 	// unmarshal into the wrapper to reach payload.announcements
 	var apiResp struct {
 		Payload struct {
@@ -88,14 +85,10 @@ func IncRansom(query string, chanDataForDb chan utils.DataForDb) bool {
 	if err != nil {
 		fmt.Println("[IncRansom] JSON parse error:", err)
 		fmt.Println(string(bodyBytesIncRansom))
-		return false
 	}
 	companies = apiResp.Payload.Announcements // keep using `companies` throughout
-
-	if !strings.Contains(body, query) {
-		fmt.Println("[IncRansom] No results found")
-		return false
-	} else {
+	for query := range channel {
+		query = strings.TrimSpace(query)
 		for _, c := range companies {
 			if strings.Contains(c.Company.Name, query) { // c.Company.Name for nested field
 				url := incRansomOnionBlog + c.ID
@@ -108,7 +101,7 @@ func IncRansom(query string, chanDataForDb chan utils.DataForDb) bool {
 				fmt.Println(data.Key, data.Url)
 				fmt.Println("[IncRansom] Result found")
 			}
+
 		}
-		return true
 	}
 }
