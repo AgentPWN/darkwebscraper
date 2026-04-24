@@ -95,7 +95,7 @@ func MoneyMessage(channel chan string, chanDataForDb chan utils.DataForDb) {
 				data.Desc = "Lorem Ipsum"
 				chanDataForDb <- data
 				fmt.Println(data.Key, data.Url)
-				fmt.Println("[MoneyMessage] Results found")
+				fmt.Println("[MoneyMessage] Results found:", data.Key, data.Url)
 			}
 		}
 	}

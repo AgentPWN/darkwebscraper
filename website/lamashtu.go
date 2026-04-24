@@ -47,13 +47,12 @@ func initLamashtuClient() error {
 	return nil
 }
 
-func Lamashtu(query string, chanDataForDb chan utils.DataForDb) bool {
+func Lamashtu(channel chan string, chanDataForDb chan utils.DataForDb) {
 	data := utils.DataForDb{}
 	var response LamashtuResponse
 
 	if err := initLamashtuClient(); err != nil {
 		fmt.Println("[Lamashtu] init failed:", err)
-		return false
 	}
 
 	req, _ := http.NewRequest("GET", lamashtuOnion+"api/posts?page=1&limit=6&filter=all", nil)
@@ -80,31 +79,23 @@ func Lamashtu(query string, chanDataForDb chan utils.DataForDb) bool {
 		}
 	}
 
-	body := string(bodyBytesLamashtu)
-
 	err = json.Unmarshal(bodyBytesLamashtu, &response)
 	if err != nil {
 		fmt.Println("[Lamashtu] JSON parse error:", err)
-		return false
 	}
-
-	for _, c := range response.Posts {
-		if strings.Contains(c.Name, query) {
-			url := lamashtuOnion + "post/" + c.ID
-			data.Source = "lamashtu"
-			data.Key = query
-			data.Url = url
-			data.Desc = c.Desc
-			chanDataForDb <- data
-			fmt.Println(data.Key, data.Url)
-			fmt.Println("[Lamashtu] Results found")
+	for query := range channel {
+		query = strings.TrimSpace(query)
+		for _, c := range response.Posts {
+			if strings.Contains(c.Name, query) || strings.Contains(c.Desc, query) {
+				url := lamashtuOnion + "post/" + c.ID
+				data.Source = "lamashtu"
+				data.Key = query
+				data.Url = url
+				data.Desc = c.Desc
+				chanDataForDb <- data
+				fmt.Println(data.Key, data.Url)
+				fmt.Println("[Lamashtu] Results found: ", data.Key, data.Url)
+			}
 		}
 	}
-
-	if !strings.Contains(body, query) {
-		fmt.Println("[Lamashtu] No results found")
-		return false
-	}
-
-	return true
 }

@@ -91,7 +91,6 @@ func Sinobi(channel chan string, chanDataForDb chan utils.DataForDb) {
 		fmt.Println("[Sinobi] JSON parse error:", err)
 	}
 
-	found := false
 	for query := range channel {
 		query = strings.TrimSpace(query)
 		// fmt.Println(bodyBytesSinobi)
@@ -104,15 +103,8 @@ func Sinobi(channel chan string, chanDataForDb chan utils.DataForDb) {
 				data.Desc = desc
 				chanDataForDb <- data
 				fmt.Println(data.Key, data.Url)
-				fmt.Println("[Sinobi] Results found")
-				found = true
+				fmt.Println("[Sinobi] Results found:", data.Key, data.Url)
 			}
 		}
-
 	}
-
-	if !found {
-		fmt.Println("[Sinobi] No results found")
-	}
-
 }

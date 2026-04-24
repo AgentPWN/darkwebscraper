@@ -97,7 +97,7 @@ func Morpheus(channel chan string, chanDataForDb chan utils.DataForDb) {
 				data.Desc = "Lorem Ipsum"
 				chanDataForDb <- data
 				fmt.Println(data.Key, data.Url)
-				fmt.Println("[Morpheus] Results found")
+				fmt.Println("[Morpheus] Results found:", data.Key, data.Url)
 			}
 		}
 

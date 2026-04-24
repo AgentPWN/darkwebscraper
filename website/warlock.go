@@ -96,12 +96,9 @@ func Warlock(channel chan string, chanDataForDb chan utils.DataForDb) {
 				data.Desc = c.Desc
 				chanDataForDb <- data
 				fmt.Println(data.Key, data.Url)
-				fmt.Println("[Warlock] Results found")
+				fmt.Println("[Warlock] Results found:", data.Key, data.Url)
 			}
 		}
-		// if !strings.Contains(body, query) {
-		// 	fmt.Println("[Warlock] No results found")
-		// }
 	}
 
 }

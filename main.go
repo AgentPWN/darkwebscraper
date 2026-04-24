@@ -28,14 +28,14 @@ func main() {
 		// website.Everest,
 		// website.Ransomexx,
 		// website.Kairos,
-		// website.Lamashtu,
-		// website.Linkcpub,
-		// website.Lynx,
+		website.Lamashtu,
+		website.Linkcpub,
+		website.Lynx,
 		website.MoneyMessage,
-		// website.Morpheus,
 		website.Sinobi,
 		website.Termite,
 		website.Warlock,
+		website.Morpheus,
 	}
 	var wg sync.WaitGroup
 	chanList := make([]chan string, len(funcs))

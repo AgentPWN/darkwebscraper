@@ -98,14 +98,8 @@ func Termite(channel chan string, chanDataForDb chan utils.DataForDb) {
 				data.Desc = c.Desc
 				chanDataForDb <- data
 				fmt.Println(data.Key, data.Url)
-				fmt.Println("[Termite] Results found")
+				fmt.Println("[Termite] Results found:", data.Key, data.Url)
 			}
 		}
-		// if !strings.Contains(body, query) {
-		// 	fmt.Println("[Termite] No results found")
-		// 	continue
-		// }
 	}
-
-	// return true
 }

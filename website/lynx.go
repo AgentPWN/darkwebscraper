@@ -54,13 +54,12 @@ func initLynxClient() error {
 	return nil
 }
 
-func Lynx(query string, chanDataForDb chan utils.DataForDb) bool {
+func Lynx(channel chan string, chanDataForDb chan utils.DataForDb) {
 	data := utils.DataForDb{}
 	var response LynxResponse
 
 	if err := initLynxClient(); err != nil {
 		fmt.Println("[Lynx] init failed:", err)
-		return false
 	}
 
 	req, _ := http.NewRequest("GET", lynxOnion+"api/v1/blog/get/announcements?page=1&perPage=400", nil)
@@ -72,7 +71,6 @@ func Lynx(query string, chanDataForDb chan utils.DataForDb) bool {
 	resp, err := lynxClient.Do(req)
 	if err != nil {
 		fmt.Println("[Lynx] request failed:", err)
-		return false
 	}
 	defer resp.Body.Close()
 
@@ -80,43 +78,38 @@ func Lynx(query string, chanDataForDb chan utils.DataForDb) bool {
 		reader, err := gzip.NewReader(resp.Body)
 		if err != nil {
 			fmt.Println("[Lynx] gzip reader error:", err)
-			return false
 		}
 		bodyBytesLynx, err = io.ReadAll(reader)
 		reader.Close()
 		if err != nil {
 			fmt.Println("[Lynx] gzip read error:", err)
-			return false
 		}
 	} else {
 		bodyBytesLynx, err = io.ReadAll(resp.Body)
 		if err != nil {
 			fmt.Println("[Lynx] body read error:", err)
-			return false
 		}
 	}
 
 	err = json.Unmarshal(bodyBytesLynx, &response)
 	if err != nil {
 		fmt.Println("[Lynx] JSON parse error:", err)
-		return false
 	}
-
-	for _, c := range response.Payload.Announcements {
-		if strings.Contains(strings.ToLower(c.Company.Name), strings.ToLower(query)) {
-			url := lynxOnion + "leaks/" + c.ID
-			data.Source = "lynx"
-			data.Key = query
-			data.Url = url
-			data.Desc = strings.Join(c.Desc, " ")
-			chanDataForDb <- data
-			fmt.Println(data.Key, data.Url)
-			fmt.Println("[Lynx] Results found")
-		} else {
-			fmt.Println("[Lynx] No results found")
-			return false
+	for query := range channel {
+		query = strings.TrimSpace(query)
+		// fmt.Println(query)
+		for _, c := range response.Payload.Announcements {
+			if strings.Contains(strings.ToLower(c.Company.Name), strings.ToLower(query)) {
+				url := lynxOnion + "leaks/" + c.ID
+				data.Source = "lynx"
+				data.Key = query
+				data.Url = url
+				data.Desc = strings.Join(c.Desc, " ")
+				chanDataForDb <- data
+				fmt.Println(data.Key, data.Url)
+				fmt.Println("[Lynx] Results found:", data.Key, data.Url)
+			}
 		}
-	}
 
-	return true
+	}
 }

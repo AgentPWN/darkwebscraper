@@ -47,13 +47,12 @@ func initLinkcpubClient() error {
 	return nil
 }
 
-func Linkcpub(query string, chanDataForDb chan utils.DataForDb) bool {
+func Linkcpub(channel chan string, chanDataForDb chan utils.DataForDb) {
 	data := utils.DataForDb{}
 	var response LinkcpubResponse
 
 	if err := initLinkcpubClient(); err != nil {
 		fmt.Println("[Linkcpub] init failed:", err)
-		return false
 	}
 
 	req, _ := http.NewRequest("GET", linkcpubOnion+"api/article?skip=0&size=20", nil)
@@ -80,31 +79,24 @@ func Linkcpub(query string, chanDataForDb chan utils.DataForDb) bool {
 		}
 	}
 
-	body := string(bodyBytesLinkcpub)
-
 	err = json.Unmarshal(bodyBytesLinkcpub, &response)
 	if err != nil {
 		fmt.Println("[Linkcpub] JSON parse error:", err)
-		return false
 	}
+	for query := range channel {
+		query = strings.TrimSpace(query)
 
-	for _, c := range response.Posts {
-		if strings.Contains(c.Name, query) {
-			url := linkcpubOnion + "article/" + c.ID
-			data.Source = "linkcpub"
-			data.Key = query
-			data.Url = url
-			data.Desc = c.Desc
-			chanDataForDb <- data
-			fmt.Println("[Linkcpub] Results found")
-			fmt.Println(data.Key, data.Url)
+		for _, c := range response.Posts {
+			if strings.Contains(c.Name, query) {
+				url := linkcpubOnion + "article/" + c.ID
+				data.Source = "linkcpub"
+				data.Key = query
+				data.Url = url
+				data.Desc = c.Desc
+				chanDataForDb <- data
+				fmt.Println("[Linkcpub] Results found:", data.Key, data.Url)
+			}
+
 		}
 	}
-
-	if !strings.Contains(body, query) {
-		fmt.Println("[Linkcpub] No results found")
-		return false
-	}
-
-	return true
 }
