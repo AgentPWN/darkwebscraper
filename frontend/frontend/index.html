@@ -1,0 +1,801 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Mongo Field Explorer</title>
+        <link
+            href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            :root {
+                --bg: #0a0a0f;
+                --surface: #111118;
+                --surface2: #1a1a24;
+                --border: #2a2a3a;
+                --accent: #00e5a0;
+                --accent2: #0090ff;
+                --danger: #ff4466;
+                --text: #e8e8f0;
+                --text-dim: #6a6a8a;
+                --tag-bg: #1a2a1a;
+                --tag-border: #00e5a040;
+                --selected-bg: #002a1a;
+            }
+
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                font-family: "IBM Plex Sans", sans-serif;
+                background: var(--bg);
+                color: var(--text);
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+            }
+
+            header {
+                border-bottom: 1px solid var(--border);
+                padding: 20px 32px;
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                background: var(--surface);
+            }
+
+            .logo {
+                font-family: "IBM Plex Mono", monospace;
+                font-size: 18px;
+                font-weight: 600;
+                color: var(--accent);
+                letter-spacing: -0.5px;
+            }
+            .logo span {
+                color: var(--text-dim);
+            }
+
+            .status-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: var(--accent);
+                box-shadow: 0 0 8px var(--accent);
+                margin-left: auto;
+                animation: pulse 2s infinite;
+            }
+            .status-dot.offline {
+                background: var(--danger);
+                box-shadow: 0 0 8px var(--danger);
+            }
+
+            @keyframes pulse {
+                0%,
+                100% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0.4;
+                }
+            }
+
+            .main {
+                display: grid;
+                grid-template-columns: 380px 1fr;
+                flex: 1;
+                height: calc(100vh - 65px);
+            }
+
+            /* LEFT PANEL */
+            .left-panel {
+                border-right: 1px solid var(--border);
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+
+            .panel-section {
+                padding: 20px 24px;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .section-label {
+                font-family: "IBM Plex Mono", monospace;
+                font-size: 10px;
+                font-weight: 600;
+                letter-spacing: 2px;
+                color: var(--text-dim);
+                text-transform: uppercase;
+                margin-bottom: 12px;
+            }
+
+            select {
+                width: 100%;
+                background: var(--surface2);
+                border: 1px solid var(--border);
+                color: var(--text);
+                padding: 10px 14px;
+                border-radius: 6px;
+                font-family: "IBM Plex Mono", monospace;
+                font-size: 13px;
+                cursor: pointer;
+                appearance: none;
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236a6a8a' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+                background-repeat: no-repeat;
+                background-position: right 12px center;
+                padding-right: 32px;
+                transition: border-color 0.2s;
+                margin-bottom: 8px;
+            }
+            select:focus {
+                outline: none;
+                border-color: var(--accent);
+            }
+            select:disabled {
+                opacity: 0.4;
+                cursor: not-allowed;
+            }
+
+            .keys-section {
+                flex: 1;
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+                padding: 20px 24px;
+            }
+
+            .keys-controls {
+                display: flex;
+                gap: 8px;
+                margin-bottom: 12px;
+            }
+
+            .filter-input {
+                flex: 1;
+                background: var(--surface2);
+                border: 1px solid var(--border);
+                color: var(--text);
+                padding: 8px 12px;
+                border-radius: 6px;
+                font-family: "IBM Plex Mono", monospace;
+                font-size: 12px;
+                transition: border-color 0.2s;
+            }
+            .filter-input:focus {
+                outline: none;
+                border-color: var(--accent);
+            }
+            .filter-input::placeholder {
+                color: var(--text-dim);
+            }
+
+            .btn-sm {
+                background: transparent;
+                border: 1px solid var(--border);
+                color: var(--text-dim);
+                padding: 8px 12px;
+                border-radius: 6px;
+                font-family: "IBM Plex Mono", monospace;
+                font-size: 11px;
+                cursor: pointer;
+                transition: all 0.2s;
+                white-space: nowrap;
+            }
+            .btn-sm:hover {
+                border-color: var(--accent);
+                color: var(--accent);
+            }
+
+            .keys-list {
+                flex: 1;
+                overflow-y: auto;
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+                padding-right: 4px;
+            }
+            .keys-list::-webkit-scrollbar {
+                width: 4px;
+            }
+            .keys-list::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            .keys-list::-webkit-scrollbar-thumb {
+                background: var(--border);
+                border-radius: 2px;
+            }
+
+            .key-item {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 8px 12px;
+                border-radius: 6px;
+                border: 1px solid transparent;
+                cursor: pointer;
+                transition: all 0.15s;
+                font-family: "IBM Plex Mono", monospace;
+                font-size: 12px;
+                color: var(--text-dim);
+                user-select: none;
+            }
+            .key-item:hover {
+                background: var(--surface2);
+                color: var(--text);
+                border-color: var(--border);
+            }
+            .key-item.selected {
+                background: var(--selected-bg);
+                color: var(--accent);
+                border-color: var(--tag-border);
+            }
+
+            .key-checkbox {
+                width: 14px;
+                height: 14px;
+                border: 1px solid var(--border);
+                border-radius: 3px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                transition: all 0.15s;
+            }
+            .key-item.selected .key-checkbox {
+                background: var(--accent);
+                border-color: var(--accent);
+            }
+            .key-item.selected .key-checkbox::after {
+                content: "";
+                width: 8px;
+                height: 5px;
+                border-left: 2px solid #000;
+                border-bottom: 2px solid #000;
+                transform: rotate(-45deg) translateY(-1px);
+                display: block;
+            }
+
+            .selected-preview {
+                border-top: 1px solid var(--border);
+                padding: 16px 24px;
+                background: var(--surface);
+            }
+
+            .selected-tags {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 6px;
+                margin-top: 8px;
+                max-height: 80px;
+                overflow-y: auto;
+            }
+
+            .tag {
+                background: var(--tag-bg);
+                border: 1px solid var(--tag-border);
+                color: var(--accent);
+                padding: 3px 8px;
+                border-radius: 4px;
+                font-family: "IBM Plex Mono", monospace;
+                font-size: 11px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+            .tag-remove {
+                cursor: pointer;
+                color: var(--text-dim);
+                font-size: 14px;
+                line-height: 1;
+                transition: color 0.15s;
+            }
+            .tag-remove:hover {
+                color: var(--danger);
+            }
+
+            .run-btn {
+                width: 100%;
+                background: var(--accent);
+                color: #000;
+                border: none;
+                padding: 12px;
+                border-radius: 6px;
+                font-family: "IBM Plex Mono", monospace;
+                font-size: 13px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s;
+                margin-top: 16px;
+                letter-spacing: 0.5px;
+            }
+            .run-btn:hover {
+                background: #00ffb3;
+                box-shadow: 0 0 20px #00e5a040;
+            }
+            .run-btn:disabled {
+                opacity: 0.4;
+                cursor: not-allowed;
+            }
+
+            /* RIGHT PANEL */
+            .right-panel {
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+
+            .results-header {
+                padding: 20px 28px;
+                border-bottom: 1px solid var(--border);
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                background: var(--surface);
+            }
+
+            .results-count {
+                font-family: "IBM Plex Mono", monospace;
+                font-size: 12px;
+                color: var(--text-dim);
+                margin-left: auto;
+            }
+            .results-count strong {
+                color: var(--accent);
+            }
+
+            .results-body {
+                flex: 1;
+                overflow-y: auto;
+                padding: 20px 28px;
+            }
+            .results-body::-webkit-scrollbar {
+                width: 6px;
+            }
+            .results-body::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            .results-body::-webkit-scrollbar-thumb {
+                background: var(--border);
+                border-radius: 3px;
+            }
+
+            .empty-state {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 100%;
+                gap: 16px;
+                color: var(--text-dim);
+            }
+            .empty-icon {
+                font-size: 48px;
+                opacity: 0.3;
+            }
+            .empty-state p {
+                font-family: "IBM Plex Mono", monospace;
+                font-size: 13px;
+            }
+
+            .result-table-wrap {
+                overflow-x: auto;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                font-family: "IBM Plex Mono", monospace;
+                font-size: 12px;
+            }
+
+            thead {
+                position: sticky;
+                top: 0;
+                background: var(--bg);
+                z-index: 1;
+            }
+
+            th {
+                text-align: left;
+                padding: 10px 16px;
+                border-bottom: 1px solid var(--border);
+                color: var(--accent);
+                font-weight: 600;
+                font-size: 11px;
+                letter-spacing: 0.5px;
+                white-space: nowrap;
+            }
+
+            td {
+                padding: 10px 16px;
+                border-bottom: 1px solid #1a1a24;
+                color: var(--text);
+                max-width: 280px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            tr:hover td {
+                background: var(--surface2);
+            }
+
+            .td-null {
+                color: var(--text-dim);
+                font-style: italic;
+            }
+            .td-bool {
+                color: var(--accent2);
+            }
+            .td-num {
+                color: #ffaa44;
+            }
+
+            .loading {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 12px;
+                padding: 60px;
+                color: var(--text-dim);
+                font-family: "IBM Plex Mono", monospace;
+                font-size: 13px;
+            }
+            .spinner {
+                width: 20px;
+                height: 20px;
+                border: 2px solid var(--border);
+                border-top-color: var(--accent);
+                border-radius: 50%;
+                animation: spin 0.8s linear infinite;
+            }
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            .error-msg {
+                background: #1a0a0a;
+                border: 1px solid #ff446640;
+                color: var(--danger);
+                padding: 14px 18px;
+                border-radius: 6px;
+                font-family: "IBM Plex Mono", monospace;
+                font-size: 12px;
+                margin: 20px 0;
+            }
+            .no-results {
+                text-align: center;
+                padding: 60px;
+                color: var(--text-dim);
+                font-family: "IBM Plex Mono", monospace;
+                font-size: 13px;
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <div class="logo">mongo<span>/</span>explorer</div>
+            <div
+                style="
+                    font-size: 12px;
+                    color: var(--text-dim);
+                    font-family: &quot;IBM Plex Mono&quot;, monospace;
+                "
+            >
+                field presence query
+            </div>
+            <div class="status-dot" id="statusDot"></div>
+        </header>
+
+        <div class="main">
+            <!-- LEFT PANEL -->
+            <div class="left-panel">
+                <div class="panel-section">
+                    <div class="section-label">Database</div>
+                    <select id="dbSelect" onchange="loadCollections()" disabled>
+                        <option value="">— loading —</option>
+                    </select>
+                    <div class="section-label" style="margin-top: 12px">
+                        Collection
+                    </div>
+                    <select id="colSelect" disabled>
+                        <option value="">— select database first —</option>
+                    </select>
+                </div>
+
+                <div class="keys-section">
+                    <div class="section-label">Field Keys</div>
+                    <div class="keys-controls">
+                        <input
+                            class="filter-input"
+                            id="keyFilter"
+                            placeholder="Filter keys..."
+                            oninput="renderKeys()"
+                        />
+                        <button class="btn-sm" onclick="selectAll()">
+                            All
+                        </button>
+                        <button class="btn-sm" onclick="clearAll()">
+                            Clear
+                        </button>
+                    </div>
+                    <div class="keys-list" id="keysList"></div>
+                </div>
+
+                <div class="selected-preview">
+                    <div class="section-label">
+                        Selected (<span id="selectedCount">0</span>)
+                    </div>
+                    <div class="selected-tags" id="selectedTags"></div>
+                    <button
+                        class="run-btn"
+                        id="runBtn"
+                        onclick="runQuery()"
+                        disabled
+                    >
+                        ▶ RUN QUERY
+                    </button>
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL -->
+            <div class="right-panel">
+                <div class="results-header">
+                    <div class="section-label" style="margin: 0">Results</div>
+                    <div class="results-count" id="resultsCount"></div>
+                </div>
+                <div class="results-body" id="resultsBody">
+                    <div class="empty-state">
+                        <div class="empty-icon">⬡</div>
+                        <p>Select keys and run a query</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function renderKeys() {
+                const filter = document
+                    .getElementById("keyFilter")
+                    .value.toLowerCase();
+                const list = document.getElementById("keysList");
+
+                list.innerHTML = allKeys
+                    .filter((k) => k.toLowerCase().includes(filter))
+                    .map((key) => {
+                        const sel = selectedKeys.has(key);
+                        return `<div class="key-item ${sel ? "selected" : ""}" data-key="${encodeURIComponent(key)}">
+                        <div class="key-checkbox"></div>
+                        <span>${escHtml(key)}</span>
+                    </div>`;
+                    })
+                    .join("");
+
+                // attach listeners
+                list.querySelectorAll(".key-item").forEach((el) => {
+                    el.addEventListener("click", () => {
+                        const key = decodeURIComponent(el.dataset.key);
+                        toggleKey(key);
+                    });
+                });
+            }
+            let allKeys = [];
+            let selectedKeys = new Set();
+
+            fetch("/api/keys")
+                .then((r) => r.json())
+                .then((keys) => {
+                    allKeys = keys;
+                    renderKeys();
+                });
+
+            fetch("/api/databases")
+                .then((r) => r.json())
+                .then((data) => {
+                    const sel = document.getElementById("dbSelect");
+                    if (data.error) {
+                        sel.innerHTML =
+                            '<option value="">Error loading databases</option>';
+                        document
+                            .getElementById("statusDot")
+                            .classList.add("offline");
+                        return;
+                    }
+                    sel.innerHTML =
+                        '<option value="">— select database —</option>' +
+                        data.databases
+                            .map((d) => `<option value="${d}">${d}</option>`)
+                            .join("");
+                    sel.disabled = false;
+                })
+                .catch(() =>
+                    document
+                        .getElementById("statusDot")
+                        .classList.add("offline"),
+                );
+
+            function loadCollections() {
+                const db = document.getElementById("dbSelect").value;
+                const col = document.getElementById("colSelect");
+                if (!db) {
+                    col.innerHTML =
+                        '<option value="">— select database first —</option>';
+                    col.disabled = true;
+                    updateRunBtn();
+                    return;
+                }
+                col.innerHTML = '<option value="">— loading —</option>';
+                col.disabled = true;
+                fetch("/api/collections?db=" + encodeURIComponent(db))
+                    .then((r) => r.json())
+                    .then((data) => {
+                        if (data.error) {
+                            col.innerHTML = `<option value="">Error: ${data.error}</option>`;
+                            return;
+                        }
+                        col.innerHTML =
+                            '<option value="">— select collection —</option>' +
+                            data.collections
+                                .map(
+                                    (c) => `<option value="${c}">${c}</option>`,
+                                )
+                                .join("");
+                        col.disabled = false;
+                    });
+            }
+
+            function toggleKey(key) {
+                selectedKeys.has(key)
+                    ? selectedKeys.delete(key)
+                    : selectedKeys.add(key);
+                renderKeys();
+                renderSelectedTags();
+                updateRunBtn();
+            }
+
+            function renderSelectedTags() {
+                const container = document.getElementById("selectedTags");
+                document.getElementById("selectedCount").textContent =
+                    selectedKeys.size;
+                if (selectedKeys.size === 0) {
+                    container.innerHTML =
+                        "<span style=\"font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-dim)\">none selected</span>";
+                    return;
+                }
+                container.innerHTML = [...selectedKeys]
+                    .map(
+                        (key) =>
+                            `<div class="tag"><span>${escHtml(key)}</span><span class="tag-remove" onclick="toggleKey(${JSON.stringify(key)})">×</span></div>`,
+                    )
+                    .join("");
+            }
+
+            function updateRunBtn() {
+                const db = document.getElementById("dbSelect").value;
+                const col = document.getElementById("colSelect").value;
+                document.getElementById("runBtn").disabled =
+                    selectedKeys.size === 0 || !db || !col;
+            }
+
+            document
+                .getElementById("colSelect")
+                .addEventListener("change", updateRunBtn);
+            document
+                .getElementById("dbSelect")
+                .addEventListener("change", updateRunBtn);
+
+            function selectAll() {
+                const filter = document
+                    .getElementById("keyFilter")
+                    .value.toLowerCase();
+                allKeys
+                    .filter((k) => k.toLowerCase().includes(filter))
+                    .forEach((k) => selectedKeys.add(k));
+                renderKeys();
+                renderSelectedTags();
+                updateRunBtn();
+            }
+
+            function clearAll() {
+                selectedKeys.clear();
+                renderKeys();
+                renderSelectedTags();
+                updateRunBtn();
+            }
+
+            function runQuery() {
+                const db = document.getElementById("dbSelect").value;
+                const col = document.getElementById("colSelect").value;
+                if (!db || !col || selectedKeys.size === 0) return;
+
+                const body = document.getElementById("resultsBody");
+                body.innerHTML =
+                    '<div class="loading"><div class="spinner"></div>Querying MongoDB...</div>';
+                document.getElementById("resultsCount").innerHTML = "";
+
+                fetch("/api/query", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        database: db,
+                        collection: col,
+                        keys: [...selectedKeys],
+                    }),
+                })
+                    .then((r) => r.json())
+                    .then((data) => {
+                        if (data.error) {
+                            body.innerHTML = `<div class="error-msg">⚠ ${escHtml(data.error)}</div>`;
+                            return;
+                        }
+
+                        document.getElementById("resultsCount").innerHTML =
+                            `<strong>${data.count}</strong> document${data.count !== 1 ? "s" : ""} found`;
+
+                        if (data.count === 0) {
+                            body.innerHTML =
+                                '<div class="no-results">No documents contain all selected fields.</div>';
+                            return;
+                        }
+
+                        const cols = ["source", "url", "desc", "key"];
+
+                        let html =
+                            `<div class="result-table-wrap"><table><thead><tr><th>#</th><th>_id</th>` +
+                            cols.map((c) => `<th>${escHtml(c)}</th>`).join("") +
+                            `</tr></thead><tbody>`;
+
+                        data.results.forEach((row, i) => {
+                            html += `<tr><td style="color:var(--text-dim)">${i + 1}</td>`;
+
+                            const idVal = row._id?.$oid || row._id || "";
+                            html += `<td style="color:var(--text-dim);font-size:11px">${escHtml(String(idVal))}</td>`;
+
+                            cols.forEach((c) => {
+                                const val = row[c];
+                                let cls = "",
+                                    display = "";
+
+                                if (val === null || val === undefined) {
+                                    cls = "td-null";
+                                    display = "null";
+                                } else if (typeof val === "boolean") {
+                                    cls = "td-bool";
+                                    display = String(val);
+                                } else if (typeof val === "number") {
+                                    cls = "td-num";
+                                    display = String(val);
+                                } else if (typeof val === "object") {
+                                    display = JSON.stringify(val);
+                                } else {
+                                    display = String(val);
+                                }
+
+                                html += `<td class="${cls}" title="${escHtml(display)}">${escHtml(display)}</td>`;
+                            });
+
+                            html += "</tr>";
+                        });
+
+                        body.innerHTML = html + "</tbody></table></div>";
+                    });
+            }
+
+            function escHtml(s) {
+                return String(s)
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#39;");
+            }
+
+            renderSelectedTags();
+        </script>
+    </body>
+</html>
