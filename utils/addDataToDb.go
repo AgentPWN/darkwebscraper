@@ -108,7 +108,7 @@ func AddDataToDb(client *mongo.Client, ch <-chan DataForDb) {
 			}
 
 			batch = append(batch, data)
-
+			fmt.Println(batch)
 			if len(batch) >= 50 {
 				BatchInsert(client, batch)
 				batch = batch[:0]

@@ -4,7 +4,6 @@ import (
 	"context"
 	"darkwebscraper/utils"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -132,8 +131,8 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
-	fmt.Println(req.Database, req.Collection)
-	fmt.Println(projection)
+	// fmt.Println(req.Database, req.Collection)
+	// fmt.Println(projection)
 	col := client.Database(req.Database).Collection(req.Collection)
 	// opts := options.Find().SetProjection(projection).SetLimit(500)
 	opts := options.Find().SetProjection(bson.M{
@@ -155,7 +154,7 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(QueryResponse{Error: err.Error()})
 		return
 	}
-	fmt.Println(results)
+	// fmt.Println(results)
 	if results == nil {
 		results = []map[string]interface{}{}
 	}
@@ -171,7 +170,6 @@ func main() {
 	contents, _ := os.ReadFile("../names.txt")
 	allKeys = strings.Split(string(contents), "\n")
 	for i := range len(allKeys) {
-
 		allKeys[i] = strings.TrimSpace(allKeys[i])
 	}
 

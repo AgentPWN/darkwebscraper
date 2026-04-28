@@ -35,6 +35,15 @@ func main() {
 		// website.Darknet,
 		// website.Everest,
 		// website.Ransomexx,
+		// website.Abyss,
+		// website.Akira,
+		// website.DataExposureLogs,
+		// website.Beast,
+		// website.Benzona,
+		// website.Blackwater,
+		// website.Braincipher,
+		// website.Dragonforce,
+		// website.Bashe,
 
 	}
 	var wg sync.WaitGroup

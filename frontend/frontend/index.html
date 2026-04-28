@@ -746,15 +746,15 @@
                         const cols = ["source", "url", "desc", "key"];
 
                         let html =
-                            `<div class="result-table-wrap"><table><thead><tr><th>#</th><th>_id</th>` +
+                            `<div class="result-table-wrap"><table><thead><tr><th>#</th>` +
                             cols.map((c) => `<th>${escHtml(c)}</th>`).join("") +
                             `</tr></thead><tbody>`;
 
                         data.results.forEach((row, i) => {
                             html += `<tr><td style="color:var(--text-dim)">${i + 1}</td>`;
 
-                            const idVal = row._id?.$oid || row._id || "";
-                            html += `<td style="color:var(--text-dim);font-size:11px">${escHtml(String(idVal))}</td>`;
+                            // const idVal = row._id?.$oid || row._id || "";
+                            // html += `<td style="color:var(--text-dim);font-size:11px">${escHtml(String(idVal))}</td>`;
 
                             cols.forEach((c) => {
                                 const val = row[c];

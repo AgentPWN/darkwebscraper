@@ -73,3 +73,17 @@ type CompanyWarlock struct {
 	Name string `json:"name"`
 	Desc string `json:"description"`
 }
+
+type CompanyAbyss struct {
+	Title string   `json:"title"`
+	Short string   `json:"short"`
+	Full  string   `json:"full"`
+	Links []string `json:"links"`
+}
+
+type CompanyAkira struct {
+	Title string `json:"title"`
+	Name  string `json:"name"`
+	Desc  string `json:"desc"`
+	Links string `json:"links"`
+}
