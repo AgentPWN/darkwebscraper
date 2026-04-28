@@ -2,6 +2,7 @@ package main
 
 import (
 	"darkwebscraper/utils"
+	"darkwebscraper/website"
 	"os"
 	"strings"
 	"sync"
@@ -44,7 +45,11 @@ func main() {
 		// website.Braincipher,
 		// website.Dragonforce,
 		// website.Bashe,
-
+		// website.Metaencryptor,
+		// website.Mydata,
+		// website.Ms13089,
+		// website.Nova,
+		website.Payload,
 	}
 	var wg sync.WaitGroup
 	chanList := make([]chan string, len(funcs))
