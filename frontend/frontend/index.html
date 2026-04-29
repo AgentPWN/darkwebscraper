@@ -674,7 +674,7 @@
                 container.innerHTML = [...selectedKeys]
                     .map(
                         (key) =>
-                            `<div class="tag"><span>${escHtml(key)}</span><span class="tag-remove" onclick="toggleKey(${JSON.stringify(key)})">×</span></div>`,
+                            `<div class="tag"><span>${escHtml(key)}</span><span class="tag-remove" onclick="toggleKey('${encodeURIComponent(key)}')">×</span></div>`,
                     )
                     .join("");
             }
