@@ -120,10 +120,10 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Database == "" || req.Collection == "" {
-		json.NewEncoder(w).Encode(QueryResponse{Error: "Database and collection are required"})
-		return
-	}
+	// if req.Database == "" || req.Collection == "" {
+	// 	json.NewEncoder(w).Encode(QueryResponse{Error: "Database and collection are required"})
+	// 	return
+	// }
 	filter := bson.M{"key": bson.M{"$in": req.Keys}}
 	projection := bson.D{}
 	for _, key := range req.Keys {
@@ -133,8 +133,10 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 	// fmt.Println(req.Database, req.Collection)
 	// fmt.Println(projection)
-	col := client.Database(req.Database).Collection(req.Collection)
+	// col := client.Database(req.Database).Collection(req.Collection)
 	// opts := options.Find().SetProjection(projection).SetLimit(500)
+	col := client.Database("darkwebScrapingData").Collection("linksAndDesc")
+
 	opts := options.Find().SetProjection(bson.M{
 		"source": 1,
 		"url":    1,

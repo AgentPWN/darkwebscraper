@@ -495,7 +495,7 @@
         <div class="main">
             <!-- LEFT PANEL -->
             <div class="left-panel">
-                <div class="panel-section">
+                <!--<div class="panel-section">
                     <div class="section-label">Database</div>
                     <select id="dbSelect" onchange="loadCollections()" disabled>
                         <option value="">— loading —</option>
@@ -506,7 +506,7 @@
                     <select id="colSelect" disabled>
                         <option value="">— select database first —</option>
                     </select>
-                </div>
+                </div>-->
 
                 <div class="keys-section">
                     <div class="section-label">Field Keys</div>
@@ -536,7 +536,7 @@
                         class="run-btn"
                         id="runBtn"
                         onclick="runQuery()"
-                        disabled
+                        <!--disabled-->
                     >
                         ▶ RUN QUERY
                     </button>
@@ -592,62 +592,64 @@
                 .then((keys) => {
                     allKeys = keys;
                     renderKeys();
-                });
-
-            fetch("/api/databases")
-                .then((r) => r.json())
-                .then((data) => {
-                    const sel = document.getElementById("dbSelect");
-                    if (data.error) {
-                        sel.innerHTML =
-                            '<option value="">Error loading databases</option>';
-                        document
-                            .getElementById("statusDot")
-                            .classList.add("offline");
-                        return;
-                    }
-                    sel.innerHTML =
-                        '<option value="">— select database —</option>' +
-                        data.databases
-                            .map((d) => `<option value="${d}">${d}</option>`)
-                            .join("");
-                    sel.disabled = false;
-                })
-                .catch(() =>
+                }).catch(() =>
                     document
                         .getElementById("statusDot")
                         .classList.add("offline"),
-                );
+                );;
 
-            function loadCollections() {
-                const db = document.getElementById("dbSelect").value;
-                const col = document.getElementById("colSelect");
-                if (!db) {
-                    col.innerHTML =
-                        '<option value="">— select database first —</option>';
-                    col.disabled = true;
-                    updateRunBtn();
-                    return;
-                }
-                col.innerHTML = '<option value="">— loading —</option>';
-                col.disabled = true;
-                fetch("/api/collections?db=" + encodeURIComponent(db))
-                    .then((r) => r.json())
-                    .then((data) => {
-                        if (data.error) {
-                            col.innerHTML = `<option value="">Error: ${data.error}</option>`;
-                            return;
-                        }
-                        col.innerHTML =
-                            '<option value="">— select collection —</option>' +
-                            data.collections
-                                .map(
-                                    (c) => `<option value="${c}">${c}</option>`,
-                                )
-                                .join("");
-                        col.disabled = false;
-                    });
-            }
+            // fetch("/api/databases")
+            //     .then((r) => r.json())
+            //     .then((data) => {
+            //         const sel = document.getElementById("dbSelect");
+            //         if (data.error) {
+            //             sel.innerHTML =
+            //                 '<option value="">Error loading databases</option>';
+            //             document
+            //                 .getElementById("statusDot")
+            //                 .classList.add("offline");
+            //             return;
+            //         }
+            //         sel.innerHTML = '<option value="">— select database —</option>' + data.databases
+            //                 .map((d) => `<option value="${d}">${d}</option>`)
+            //                 .join("");
+            //         sel.disabled = false;
+            //     })
+                // .catch(() =>
+                //     document
+                //         .getElementById("statusDot")
+                //         .classList.add("offline"),
+                // );
+
+            // function loadCollections() {
+            //     const db = document.getElementById("dbSelect").value;
+            //     const col = document.getElementById("colSelect");
+            //     if (!db) {
+            //         col.innerHTML =
+            //             '<option value="">— select database first —</option>';
+            //         col.disabled = true;
+            //         updateRunBtn();
+            //         return;
+            //     }
+            //     col.innerHTML = '<option value="">— loading —</option>';
+            //     col.disabled = true;
+            //     fetch("/api/collections?db=" + encodeURIComponent(db))
+            //         .then((r) => r.json())
+            //         .then((data) => {
+            //             if (data.error) {
+            //                 col.innerHTML = `<option value="">Error: ${data.error}</option>`;
+            //                 return;
+            //             }
+            //             col.innerHTML =
+            //                 '<option value="">— select collection —</option>' +
+            //                 data.collections
+            //                     .map(
+            //                         (c) => `<option value="${c}">${c}</option>`,
+            //                     )
+            //                     .join("");
+            //             col.disabled = false;
+            //         });
+            // }
 
             function toggleKey(key) {
                 selectedKeys.has(key)
@@ -655,7 +657,7 @@
                     : selectedKeys.add(key);
                 renderKeys();
                 renderSelectedTags();
-                updateRunBtn();
+                // updateRunBtn();
             }
 
             function renderSelectedTags() {
@@ -675,19 +677,19 @@
                     .join("");
             }
 
-            function updateRunBtn() {
-                const db = document.getElementById("dbSelect").value;
-                const col = document.getElementById("colSelect").value;
-                document.getElementById("runBtn").disabled =
-                    selectedKeys.size === 0 || !db || !col;
-            }
+            // function updateRunBtn() {
+            //     const db = document.getElementById("dbSelect").value;
+            //     const col = document.getElementById("colSelect").value;
+            //     document.getElementById("runBtn").disabled =
+            //         selectedKeys.size === 0 || !db || !col;
+            // }
 
-            document
-                .getElementById("colSelect")
-                .addEventListener("change", updateRunBtn);
-            document
-                .getElementById("dbSelect")
-                .addEventListener("change", updateRunBtn);
+            // document
+            //     .getElementById("colSelect")
+            //     .addEventListener("change", updateRunBtn);
+            // document
+            //     .getElementById("dbSelect")
+            //     .addEventListener("change", updateRunBtn);
 
             function selectAll() {
                 const filter = document
@@ -698,20 +700,20 @@
                     .forEach((k) => selectedKeys.add(k));
                 renderKeys();
                 renderSelectedTags();
-                updateRunBtn();
+                // updateRunBtn();
             }
 
             function clearAll() {
                 selectedKeys.clear();
                 renderKeys();
                 renderSelectedTags();
-                updateRunBtn();
+                // updateRunBtn();
             }
 
             function runQuery() {
-                const db = document.getElementById("dbSelect").value;
-                const col = document.getElementById("colSelect").value;
-                if (!db || !col || selectedKeys.size === 0) return;
+                // const db = document.getElementById("dbSelect").value;
+                // const col = document.getElementById("colSelect").value;
+                // if (!db || !col || selectedKeys.size === 0) return;
 
                 const body = document.getElementById("resultsBody");
                 body.innerHTML =
@@ -722,8 +724,8 @@
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        database: db,
-                        collection: col,
+                        // database: db,
+                        // collection: col,
                         keys: [...selectedKeys],
                     }),
                 })
