@@ -116,7 +116,7 @@ func Metaencryptor(channel chan string, chanDataForDb chan utils.DataForDb) {
 						entry.desc = strings.TrimSpace(innerText(c))
 					}
 					// Link is on <a class="lt-btn-site"> — the external website href
-					if c.Data == "a" && hasClass(c, "lt-btn-site") {
+					if c.Data == "a" && hasClass(c, "lt-btn-files") {
 						for _, attr := range c.Attr {
 							if attr.Key == "href" {
 								entry.link = strings.TrimSpace(attr.Val)
@@ -148,7 +148,7 @@ func Metaencryptor(channel chan string, chanDataForDb chan utils.DataForDb) {
 			if strings.Contains(card.company, query) {
 				data.Source = "metaencryptor"
 				data.Key = query
-				data.Url = card.link
+				data.Url = metaencryptorOnion + card.link
 				data.Desc = card.desc
 				chanDataForDb <- data
 				// fmt.Printf("[Metaencryptor] ch addr: %p\n", chanDataForDb)
