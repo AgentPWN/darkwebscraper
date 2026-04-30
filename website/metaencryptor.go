@@ -151,7 +151,8 @@ func Metaencryptor(channel chan string, chanDataForDb chan utils.DataForDb) {
 				data.Url = card.link
 				data.Desc = card.desc
 				chanDataForDb <- data
-				fmt.Println("[Metaencryptor] Results found: ", data.Key, data.Url)
+				// fmt.Printf("[Metaencryptor] ch addr: %p\n", chanDataForDb)
+				fmt.Println("[Metaencryptor] Results found: ", data)
 			}
 		}
 	}

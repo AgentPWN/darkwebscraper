@@ -96,10 +96,11 @@ func AddDataToDb(client *mongo.Client, ch <-chan DataForDb) {
 	batch := make([]DataForDb, 0, 50)
 	ticker := time.NewTicker(2 * time.Second)
 	defer ticker.Stop()
-
+	// fmt.Printf("[Receiver] ch addr: %p\n", chs)
 	for {
 		select {
 		case data, ok := <-ch:
+			fmt.Println(data)
 			if !ok {
 				if len(batch) > 0 {
 					BatchInsert(client, batch)
@@ -115,6 +116,8 @@ func AddDataToDb(client *mongo.Client, ch <-chan DataForDb) {
 			}
 
 		case <-ticker.C:
+			// fmt.Println(batch)
+
 			if len(batch) > 0 {
 				BatchInsert(client, batch)
 				batch = batch[:0]

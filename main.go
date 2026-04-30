@@ -2,10 +2,10 @@ package main
 
 import (
 	"darkwebscraper/utils"
-	"darkwebscraper/website"
 	"os"
 	"strings"
 	"sync"
+	"time"
 )
 
 type dataForDb struct {
@@ -49,7 +49,7 @@ func main() {
 		// website.Mydata,
 		// website.Ms13089,
 		// website.Nova,
-		website.Payload,
+		// website.Payload,
 	}
 	var wg sync.WaitGroup
 	chanList := make([]chan string, len(funcs))
@@ -76,8 +76,12 @@ func main() {
 		for i, f := range funcs {
 			ch := make(chan string, 50)
 			chanList[i] = ch
-			wg.Go(func() { f(chanList[i], chanAddDataToDb) })
-			// fmt.Println(i, s)
+
+			wg.Go(func(ch chan string, f func(chan string, chan utils.DataForDb)) func() {
+				return func() {
+					f(ch, chanAddDataToDb)
+				}
+			}(ch, f))
 		}
 		for i := range eachContent {
 			for j, _ := range funcs {
@@ -89,6 +93,7 @@ func main() {
 			close(chanList[i])
 		}
 		wg.Wait()
+		time.Sleep(10 * time.Second)
 		close(chanAddDataToDb)
 	}
 }

@@ -86,9 +86,7 @@ func Termite(channel chan string, chanDataForDb chan utils.DataForDb) {
 		fmt.Println("[Termite] JSON parse error:", err)
 	}
 	for query := range channel {
-		// fmt.Println(query)
 		query = strings.TrimSpace(query)
-
 		for _, c := range companies {
 			if strings.Contains(c.Name, query) || strings.Contains(c.Desc, query) {
 				url := termiteOnion + "post/" + c.ID
@@ -97,7 +95,6 @@ func Termite(channel chan string, chanDataForDb chan utils.DataForDb) {
 				data.Url = url
 				data.Desc = c.Desc
 				chanDataForDb <- data
-				fmt.Println(data.Key, data.Url)
 				fmt.Println("[Termite] Results found:", data.Key, data.Url)
 			}
 		}
