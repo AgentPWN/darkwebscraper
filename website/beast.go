@@ -56,6 +56,24 @@ func hasClassBeast(n *html.Node, class string) bool {
 	return false
 }
 
+func getText(n *html.Node) string {
+	var b strings.Builder
+
+	var f func(*html.Node)
+	f = func(n *html.Node) {
+		if n.Type == html.TextNode {
+			b.WriteString(n.Data)
+			b.WriteString(" ")
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			f(c)
+		}
+	}
+
+	f(n)
+	return b.String()
+}
+
 func Beast(channel chan string, chanDataForDb chan utils.DataForDb) {
 	data := utils.DataForDb{}
 
@@ -87,11 +105,6 @@ func Beast(channel chan string, chanDataForDb chan utils.DataForDb) {
 		}
 	}
 
-	// err = json.Unmarshal(bodyBytesbeast, &response)
-	// if err != nil {
-	// 	fmt.Println("[beast] JSON parse error:", err)
-	// }
-
 	doc, err := html.Parse(strings.NewReader(string(bodyBytesBeast)))
 	if err != nil {
 		panic(err)
@@ -106,27 +119,23 @@ func Beast(channel chan string, chanDataForDb chan utils.DataForDb) {
 
 	var f func(*html.Node)
 	f = func(n *html.Node) {
-		// Each card is an <a> tag with class "card"
 		if n.Type == html.ElementNode && n.Data == "a" && hasClassBeast(n, "card") {
 			entry := cardEntry{}
 
-			// Extract href (relative link)
 			for _, attr := range n.Attr {
 				if attr.Key == "href" {
 					entry.link = strings.TrimSpace(attr.Val)
 				}
 			}
 
-			// Walk children to find <h3> (company name) and first <p> (description)
 			var walk func(*html.Node)
 			walk = func(c *html.Node) {
 				if c.Type == html.ElementNode {
 					if c.Data == "h3" && c.FirstChild != nil {
 						entry.company = strings.TrimSpace(c.FirstChild.Data)
 					}
-					// First <p> inside .card-text holds the description
-					if c.Data == "p" && entry.desc == "" && c.FirstChild != nil {
-						entry.desc = strings.TrimSpace(c.FirstChild.Data)
+					if c.Data == "div" && hasClassBeast(c, "card-text") && entry.desc == "" {
+						entry.desc = strings.TrimSpace(getText(c))
 					}
 				}
 				for child := c.FirstChild; child != nil; child = child.NextSibling {
@@ -138,7 +147,7 @@ func Beast(channel chan string, chanDataForDb chan utils.DataForDb) {
 			if entry.company != "" {
 				cards = append(cards, entry)
 			}
-			return // don't recurse into the card itself again
+			return
 		}
 
 		for c := n.FirstChild; c != nil; c = c.NextSibling {
@@ -158,6 +167,8 @@ func Beast(channel chan string, chanDataForDb chan utils.DataForDb) {
 				data.Desc = card.desc
 				chanDataForDb <- data
 				fmt.Println("[Beast] Results found: ", data.Key, data.Url)
+				// fmt.Println("[Beast] Results found: ", data)
+
 			}
 		}
 	}

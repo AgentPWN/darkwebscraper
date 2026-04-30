@@ -135,7 +135,7 @@ func Benzona(channel chan string, chanDataForDb chan utils.DataForDb) {
 			if entry.company != "" {
 				cards = append(cards, entry)
 			}
-			return // don't recurse into the card itself again
+			return
 		}
 
 		for c := n.FirstChild; c != nil; c = c.NextSibling {
@@ -148,13 +148,15 @@ func Benzona(channel chan string, chanDataForDb chan utils.DataForDb) {
 		query = strings.TrimSpace(query)
 		for _, card := range cards {
 			if strings.Contains(card.company, query) {
-				url := benzonaOnion + card.link
+				url := benzonaOnion
 				data.Source = "benzona"
 				data.Key = query
 				data.Url = url
 				data.Desc = card.desc
 				chanDataForDb <- data
-				fmt.Println("[Benzona] Results found: ", data.Key, data.Url)
+				// fmt.Println("[Benzona] Results found: ", data.Key, data.Url)
+				fmt.Println("[Benzona] Results found: ", data)
+
 			}
 		}
 	}

@@ -78,7 +78,6 @@ func Payload(channel chan string, chanDataForDb chan utils.DataForDb) {
 	if err != nil {
 		panic(err)
 	}
-
 	type cardEntry struct {
 		company string
 		link    string
@@ -100,26 +99,21 @@ func Payload(channel chan string, chanDataForDb chan utils.DataForDb) {
 
 	var f func(*html.Node)
 	f = func(n *html.Node) {
-		// Each entry is <a class="card-link" href="..."> wrapping <article class="card">
 		if n.Type == html.ElementNode && n.Data == "a" && hasClass(n, "card-link") {
 			entry := cardEntry{}
 
-			// Link is the href on the <a> itself
 			for _, attr := range n.Attr {
 				if attr.Key == "href" {
 					entry.link = strings.TrimSpace(attr.Val)
 				}
 			}
 
-			// Walk into the <article class="card"> children for title and body
 			var walk func(*html.Node)
 			walk = func(c *html.Node) {
 				if c.Type == html.ElementNode {
-					// Company name is in <div class="title">
 					if c.Data == "div" && hasClass(c, "title") {
 						entry.company = strings.TrimSpace(innerText(c))
 					}
-					// Description is in <pre class="body">
 					if c.Data == "pre" && hasClass(c, "body") {
 						entry.desc = strings.TrimSpace(innerText(c))
 					}
@@ -133,7 +127,7 @@ func Payload(channel chan string, chanDataForDb chan utils.DataForDb) {
 			if entry.company != "" {
 				cards = append(cards, entry)
 			}
-			return // don't recurse into the card-link itself again
+			return
 		}
 
 		for c := n.FirstChild; c != nil; c = c.NextSibling {
@@ -142,13 +136,11 @@ func Payload(channel chan string, chanDataForDb chan utils.DataForDb) {
 	}
 	f(doc)
 
-	baseURL := "http://payloadrz5yw227brtbvdqpnlhq3rdcdekdnn3rgucbcdeawq2v6vuyd.onion"
-
 	for query := range channel {
 		query = strings.TrimSpace(query)
 		for _, card := range cards {
 			if strings.Contains(card.company, query) {
-				url := baseURL + card.link
+				url := payloadOnion + card.link
 				data.Source = "payload"
 				data.Key = query
 				data.Url = url

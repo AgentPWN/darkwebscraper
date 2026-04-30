@@ -2,6 +2,7 @@ package main
 
 import (
 	"darkwebscraper/utils"
+	"darkwebscraper/website"
 	"os"
 	"strings"
 	"sync"
@@ -39,7 +40,7 @@ func main() {
 		// website.Abyss,
 		// website.Akira,
 		// website.DataExposureLogs,
-		// website.Beast,
+		website.Beast,
 		// website.Benzona,
 		// website.Blackwater,
 		// website.Braincipher,
@@ -93,7 +94,7 @@ func main() {
 			close(chanList[i])
 		}
 		wg.Wait()
-		time.Sleep(10 * time.Second)
+		time.Sleep(10 * time.Second) //somehow fixes data not being uploaded
 		close(chanAddDataToDb)
 	}
 }

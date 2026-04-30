@@ -179,7 +179,7 @@ func Mydata(channel chan string, chanDataForDb chan utils.DataForDb) {
 		query = strings.TrimSpace(query)
 		for _, card := range cards {
 			if strings.Contains(card.company, query) {
-				link := card.link
+				link := mydataOnion + card.link
 				// if !strings.HasPrefix(link, "http") {
 				// 	link = baseURL + strings.TrimPrefix(link, "/")
 				// }
