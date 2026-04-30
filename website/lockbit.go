@@ -41,11 +41,10 @@ func initLockbitClient() error {
 	return nil
 }
 
-func Lockbit(query string, chanDataForDb chan utils.DataForDb) bool {
+func Lockbit(channel chan string, chanDataForDb chan utils.DataForDb) {
 	data := utils.DataForDb{}
 	if err := initLockbitClient(); err != nil {
 		fmt.Println("[Lockbit] init failed:", err)
-		return false
 	}
 	// fmt.Println("[Lockbit]")
 	req, _ := http.NewRequest("GET", lockbitOnion, nil)
@@ -66,24 +65,17 @@ func Lockbit(query string, chanDataForDb chan utils.DataForDb) bool {
 	}
 	links := utils.ExtractPostLinks(body, "")
 	// fmt.Println(links)
-	var result bool = false
-	for _, link := range links {
-		if strings.Contains(link, strings.ToLower(query)) {
-			fmt.Println(lockbitOnion + link)
-			data.Source = "lockbit"
-			data.Key = query
-			data.Url = lockbitOnion + link
-			data.Desc = "lorem ipsum"
-			chanDataForDb <- data
-			result = true
+	for query := range channel {
+		query = strings.TrimSpace(query)
+		for _, link := range links {
+			if strings.Contains(link, strings.ToLower(query)) {
+				fmt.Println(lockbitOnion + link)
+				data.Source = "lockbit"
+				data.Key = query
+				data.Url = lockbitOnion + link
+				data.Desc = "lorem ipsum"
+				chanDataForDb <- data
+			}
 		}
 	}
-	if result == true {
-		fmt.Println("[Lockbit] Results found")
-		return result
-	} else {
-		fmt.Println("[Lockbit] Results not found")
-		return result
-	}
-
 }
