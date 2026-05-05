@@ -76,7 +76,6 @@ type CompanyWarlock struct {
 
 type CompanyAbyss struct {
 	Title string   `json:"title"`
-	Short string   `json:"short"`
 	Full  string   `json:"full"`
 	Links []string `json:"links"`
 }
