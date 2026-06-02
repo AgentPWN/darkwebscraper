@@ -2,15 +2,20 @@ package website
 
 import (
 	"compress/gzip"
+	"context"
 	"crypto/tls"
 	"darkwebscraper/utils"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"net/http/cookiejar"
+	"net/url"
 	"strings"
 	"time"
 
+	"github.com/chromedp/cdproto/network"
+	"github.com/chromedp/chromedp"
 	"golang.org/x/net/proxy"
 )
 
@@ -23,10 +28,68 @@ const akiraOnion = "https://akiral2iz6a7qgd3ayp3l6yub7xx2uep76idk3u2kollpj5z3z63
 var akiraClient *http.Client
 var bodyBytesAkira []byte
 
+// cancelAkiraAlloc and cancelAkiraCtx are kept alive for the lifetime of the
+// process so the browser session (and its cookies) remain valid after
+// initAkiraClient returns.  Call cancelAkiraAlloc() to shut the browser down.
+var cancelAkiraAlloc context.CancelFunc
+var cancelAkiraCtx context.CancelFunc
+
 func initAkiraClient() error {
 	if akiraClient != nil {
 		return nil
 	}
+
+	opts := append(chromedp.DefaultExecAllocatorOptions[:],
+		chromedp.Flag("proxy-server", "socks5://127.0.0.1:9050"),
+		chromedp.Flag("headless", false),
+		chromedp.Flag("disable-gpu", true),
+		chromedp.Flag("ignore-certificate-errors", true),
+	)
+
+	allocCtx, cancelAlloc := chromedp.NewExecAllocator(context.Background(), opts...)
+	defer cancelAlloc()
+
+	ctx, cancelCtx := chromedp.NewContext(allocCtx)
+	defer cancelCtx()
+
+	if err := chromedp.Run(ctx, network.Enable()); err != nil {
+		return fmt.Errorf("enable network domain: %w", err)
+	}
+
+	fmt.Println("[initAkiraClient] navigating to Akira, waiting for queue to resolve…")
+
+	var html string
+	err := chromedp.Run(ctx,
+		chromedp.Navigate(akiraOnion),
+		chromedp.Sleep(60*time.Second),
+		chromedp.OuterHTML("html", &html),
+	)
+	if err != nil {
+		return fmt.Errorf("chromedp navigate/wait: %w", err)
+	}
+
+	var chromeCookies []*network.Cookie
+	if err := chromedp.Run(ctx, chromedp.ActionFunc(func(ctx context.Context) error {
+		var cdpErr error
+		chromeCookies, cdpErr = network.GetCookies().Do(ctx)
+		return cdpErr
+	})); err != nil {
+		return fmt.Errorf("get cookies: %w", err)
+	}
+
+	var cookies []*http.Cookie
+	for _, c := range chromeCookies {
+		cookies = append(cookies, &http.Cookie{
+			Name:     c.Name,
+			Value:    c.Value,
+			Path:     c.Path,
+			Domain:   c.Domain,
+			Secure:   c.Secure,
+			HttpOnly: c.HTTPOnly,
+		})
+	}
+
+	jar, _ := cookiejar.New(nil)
 
 	torDialer, err := proxy.SOCKS5("tcp", "localhost:9050", nil, nil)
 	if err != nil {
@@ -38,12 +101,18 @@ func initAkiraClient() error {
 		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: true,
 		},
+		DisableKeepAlives: true,
 	}
 
 	akiraClient = &http.Client{
 		Transport: transport,
+		Jar:       jar,
 		Timeout:   60 * time.Second,
 	}
+
+	baseURL, _ := url.Parse(akiraOnion)
+	jar.SetCookies(baseURL, cookies)
+
 	return nil
 }
 
@@ -60,7 +129,8 @@ func Akira(channel chan string, chanDataForDb chan utils.DataForDb) {
 	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
 	req.Header.Set("Accept-Language", "en-US,en;q=0.5")
 	req.Header.Set("Accept-Encoding", "gzip")
-
+	req.Header.Set("Referrer", akiraOnion)
+	fmt.Println(akiraClient.Jar)
 	resp, err := akiraClient.Do(req)
 	if resp.Header.Get("Content-Encoding") == "gzip" {
 		reader, err := gzip.NewReader(resp.Body)
@@ -78,7 +148,7 @@ func Akira(channel chan string, chanDataForDb chan utils.DataForDb) {
 			resp.Body.Close()
 		}
 	}
-
+	fmt.Println(string(bodyBytesAkira))
 	err = json.Unmarshal(bodyBytesAkira, &response)
 	if err != nil {
 		fmt.Println("[Akira] JSON parse error:", err)

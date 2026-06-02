@@ -86,3 +86,9 @@ type CompanyAkira struct {
 	Desc  string `json:"desc"`
 	Links string `json:"links"`
 }
+
+type CompanyAilock struct {
+	Title string `json:"title"`
+	Desc  string `json:"fullDescription"`
+	Links string `json:"links"`
+}

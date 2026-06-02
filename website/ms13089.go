@@ -159,7 +159,7 @@ func Ms13089(channel chan string, chanDataForDb chan utils.DataForDb) {
 	for query := range channel {
 		query = strings.TrimSpace(query)
 		for _, card := range cards {
-			fmt.Println(card.company)
+			// fmt.Println(card.company)
 			if strings.Contains(card.company, query) {
 				url := baseURL + card.link
 				data.Source = "ms13089"

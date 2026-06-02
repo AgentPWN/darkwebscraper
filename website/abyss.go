@@ -40,7 +40,7 @@ func initAbyssClient() error {
 	}
 	return nil
 }
-func makeValidJson(s string) string {
+func makeValidJsonAbyss(s string) string {
 	s = strings.ReplaceAll(s, "+", "")
 	s = strings.ReplaceAll(s, " ", "")
 	s = strings.ReplaceAll(s, "\n", "")
@@ -51,14 +51,6 @@ func makeValidJson(s string) string {
 	s = strings.ReplaceAll(s, "'", "\"")
 	s = strings.ReplaceAll(s, "\",]", "\"]")
 	return s
-}
-
-func splitFull(full string) (name, desc string) {
-	parts := strings.SplitN(full, " ", 2)
-	if len(parts) == 2 {
-		return strings.TrimSpace(parts[0]), strings.TrimSpace(parts[1])
-	}
-	return strings.TrimSpace(full), ""
 }
 
 func Abyss(channel chan string, chanDataForDb chan utils.DataForDb) {
@@ -87,16 +79,16 @@ func Abyss(channel chan string, chanDataForDb chan utils.DataForDb) {
 	}
 
 	entries := bodyBytesAbyss[11 : len(bodyBytesAbyss)-1]
-	err = json.Unmarshal([]byte(makeValidJson(string(entries))), &companies)
-	fmt.Println(companies)
+	err = json.Unmarshal([]byte(makeValidJsonAbyss(string(entries))), &companies)
+	// fmt.Println(companies)
 	if err != nil {
 		if se, ok := err.(*json.SyntaxError); ok {
 			offset := se.Offset
 			start := max(0, int(offset)-50)
-			end := min(len([]byte(makeValidJson(string(entries)))), int(offset)+50)
+			end := min(len([]byte(makeValidJsonAbyss(string(entries)))), int(offset)+50)
 
 			fmt.Printf("Syntax error at byte offset %d:\n", offset)
-			fmt.Println(string([]byte(makeValidJson(string(entries)))[start:end]))
+			fmt.Println(string([]byte(makeValidJsonAbyss(string(entries)))[start:end]))
 		} else {
 			fmt.Println(err)
 		}

@@ -21,9 +21,11 @@ func main() {
 	funcs := []func(chanList chan string, chanAddDataToDb chan utils.DataForDb){
 		// website.Kyber, // this won't work as this has captcha, if this captcha can be solved, the website can be scraped
 		// website.KillSec, // this won't work as this has captcha, if this captcha can be solved, the website can be scraped
-		// website.Gunra, // has gone down
 		// website.Everest, // needs to be updated
 		// website.Ransomexx, // needs to be updated
+		// website.Darknet, // needs to be updated
+		// website.Akira,
+		// website.Ailock,
 
 		// website.IncRansom,
 		// website.Kairos,
@@ -37,11 +39,10 @@ func main() {
 		// website.Morpheus,
 		// website.Dread,
 		// website.Lockbit,
-		// website.Darknet,
-		website.Abyss,
-		// website.Akira,
+		// website.Abyss,
 		// website.DataExposureLogs,
 		// website.Beast,
+		// website.Atomsilo, // not working
 		// website.Benzona,
 		// website.Blackwater,
 		// website.Braincipher,
@@ -49,9 +50,36 @@ func main() {
 		// website.Bashe,
 		// website.Metaencryptor,
 		// website.Mydata,
+		// website.Icarus,
+		// website.Ransomhouse,
+		// website.Rhysida,
+		// website.Sarcoma,
+		// website.Triplex,
+		website.Secpo,
+		// website.PlayNews, // not working
+		// website.Radar,
+		// website.Fulcrumsec,
+		// website.Genesis,
 		// website.Ms13089,
 		// website.Nova,
 		// website.Payload,
+		// website.Bavacai,
+		// website.Dls,
+		// website.Blackwater,
+		// website.Cmd,
+		// website.Chaos,
+		// website.Coinbasecartel,
+		// website.Cry0,
+		// website.Daixin,
+		// website.Embargo, // not working
+		// website.Gunra,
+		// website.Interlock,
+		// website.Kazu, // not working
+		// website.Krybit,
+		// website.Merx,
+		// website.Kazyon, // not real
+		// website.Netrunner,
+		// website.Nightspire, // not working
 	}
 	var wg sync.WaitGroup
 	chanList := make([]chan string, len(funcs))
