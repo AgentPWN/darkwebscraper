@@ -55,7 +55,7 @@ func main() {
 		// website.Rhysida,
 		// website.Sarcoma,
 		// website.Triplex,
-		website.Secpo,
+		// website.Secpo,
 		// website.PlayNews, // not working
 		// website.Radar,
 		// website.Fulcrumsec,
@@ -67,7 +67,7 @@ func main() {
 		// website.Dls,
 		// website.Blackwater,
 		// website.Cmd,
-		// website.Chaos,
+		website.Chaos,
 		// website.Coinbasecartel,
 		// website.Cry0,
 		// website.Daixin,

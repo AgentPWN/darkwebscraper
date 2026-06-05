@@ -80,21 +80,15 @@ func Atomsilo(channel chan string, chanDataForDb chan utils.DataForDb) {
 	}
 	jsObj := bodyStr[jsonStart : jsonEnd+1]
 
-	// Convert JS object to valid JSON
 	jsonStr := jsObj
 	jsonStr = strings.ReplaceAll(jsonStr, "\r", "")
 	jsonStr = strings.TrimSpace(jsonStr)
-	// Replace backticks with double quotes for multiline strings
 	jsonStr = strings.ReplaceAll(jsonStr, "`", "\"")
 	jsonStr = strings.ReplaceAll(jsonStr, "\n", " ")
-	// Quote only top-level keys (company names) at the start of a line, not nested keys
 	jsonStr = regexp.MustCompile(`(?m)^\s*([a-zA-Z0-9_]+):`).ReplaceAllString(jsonStr, "\"$1\":")
-	// Remove trailing commas before closing braces/brackets
 	jsonStr = regexp.MustCompile(`,\s*([}\]])`).ReplaceAllString(jsonStr, "$1")
-	// Remove any trailing comma before the final closing brace
 	jsonStr = regexp.MustCompile(`,\s*}$`).ReplaceAllString(jsonStr, "}")
 	jsonStr = strings.TrimSpace(jsonStr)
-	// Ensure the object is wrapped in braces for valid JSON
 	if !strings.HasPrefix(jsonStr, "{") {
 		jsonStr = "{" + jsonStr
 	}
@@ -103,12 +97,9 @@ func Atomsilo(channel chan string, chanDataForDb chan utils.DataForDb) {
 	}
 
 	var companies map[string]struct {
-		Name        string   `json:"name"`
-		Domain      string   `json:"domain"`
-		Size        string   `json:"size"`
-		Logo        string   `json:"logo"`
-		Description string   `json:"description"`
-		Data        []string `json:"data"`
+		Name        string `json:"name"`
+		Domain      string `json:"domain"`
+		Description string `json:"description"`
 	}
 	if err := json.Unmarshal([]byte(jsonStr), &companies); err != nil {
 		fmt.Println("[Atomsilo] JSON unmarshal failed:", err)
@@ -117,12 +108,12 @@ func Atomsilo(channel chan string, chanDataForDb chan utils.DataForDb) {
 
 	for query := range channel {
 		query = strings.TrimSpace(query)
-		for _, c := range companies {
+		for companyID, c := range companies {
 			if strings.Contains(strings.ToLower(c.Name), strings.ToLower(query)) || strings.Contains(strings.ToLower(c.Description), strings.ToLower(query)) {
 				data := utils.DataForDb{
 					Source: "atomsilo",
 					Key:    query,
-					Url:    "lorem ipsum",
+					Url:    atomsiloOnion + "post.html?id=" + companyID,
 					Desc:   c.Description,
 				}
 				chanDataForDb <- data

@@ -14,25 +14,8 @@ import (
 	"golang.org/x/net/proxy"
 )
 
-type ChaosItem struct {
-	title      string `json:"title"`
-	text       string `json:"text"`
-	url        string `json:"url"`
-	leakedSize int    `json:"leakedSize"`
-	views      int    `json:"views"`
-	links      struct {
-		posted int `json:"posted"`
-		total  int `json:"total"`
-	} `json:"links"`
-	link string `json:"link"`
-}
-
-type ChaosResponse struct {
-	totalItems int         `json:"totalItems"`
-	items      []ChaosItem `json:"items"`
-}
-
 const chaosOnion = "http://hptqq2o2qjva7lcaaq67w36jihzivkaitkexorauw7b2yul2z6zozpqd.onion/api/post/list"
+const chaosBaseOnion = "http://hptqq2o2qjva7lcaaq67w36jihzivkaitkexorauw7b2yul2z6zozpqd.onion/"
 
 var chaosClient *http.Client
 
@@ -100,6 +83,7 @@ func Chaos(channel chan string, chanDataForDb chan utils.DataForDb) {
 			Title      string `json:"title"`
 			Text       string `json:"text"`
 			Url        string `json:"url"`
+			Hash       string `json:"hash"`
 			LeakedSize int    `json:"leakedSize"`
 			Views      int    `json:"views"`
 			Links      struct {
@@ -121,7 +105,9 @@ func Chaos(channel chan string, chanDataForDb chan utils.DataForDb) {
 		for _, item := range response.Items {
 			if strings.Contains(strings.ToLower(item.Title), strings.ToLower(query)) {
 				url := item.Url
-				if url == "" {
+				if item.Hash != "" && item.Link != "" {
+					url = chaosBaseOnion + item.Hash + "/" + item.Link
+				} else if url == "" {
 					url = chaosOnion
 				}
 				desc := item.Text

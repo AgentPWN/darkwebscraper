@@ -154,7 +154,6 @@ func Benzona(channel chan string, chanDataForDb chan utils.DataForDb) {
 				data.Url = url
 				data.Desc = card.desc
 				chanDataForDb <- data
-				// fmt.Println("[Benzona] Results found: ", data.Key, data.Url)
 				fmt.Println("[Benzona] Results found: ", data)
 
 			}

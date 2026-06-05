@@ -167,8 +167,6 @@ func Beast(channel chan string, chanDataForDb chan utils.DataForDb) {
 				data.Desc = card.desc
 				chanDataForDb <- data
 				fmt.Println("[Beast] Results found: ", data.Key, data.Url)
-				// fmt.Println("[Beast] Results found: ", data)
-
 			}
 		}
 	}
