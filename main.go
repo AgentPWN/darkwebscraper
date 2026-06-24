@@ -195,7 +195,8 @@ func main() {
 		// {name: "Netrunner", run: website.Netrunner},
 		// {name: "Nightspire", run: website.Nightspire}, // not working
 		// {name: "Noirth", run: website.Noirth},
-		{name: "PwnForums", run: website.PwnForums},
+		// {name: "PwnForums", run: website.PwnForums},
+		{name: "PayoutsKing", run: website.PayoutsKing},
 	}
 	chanAddDataToDb := make(chan utils.DataForDb, 100)
 	contents, err := os.ReadFile("names.txt")
