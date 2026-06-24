@@ -18,7 +18,7 @@ import (
 // 	Posts []utils.CompanyTermite `json:"posts"`
 // }
 
-const termiteOnion = "http://termitelfvhutinrgpe55siktisskbqntkuq7ojidg42zh26avekq6qd.onion/"
+const termiteOnion = "http://wsi2lhu5hqqldstnaf5ptlcmrbtyyv6zq6jswcqlmasat2r3vhurlyad.onion/"
 
 var termiteClient *http.Client
 var bodyBytesTermite []byte
@@ -80,7 +80,7 @@ func Termite(channel chan string, chanDataForDb chan utils.DataForDb) {
 	}
 
 	// body := string(bodyBytesTermite)
-
+	// fmt.Println(body)
 	err = json.Unmarshal(bodyBytesTermite, &companies)
 	if err != nil {
 		fmt.Println("[Termite] JSON parse error:", err)

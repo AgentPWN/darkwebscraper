@@ -111,7 +111,6 @@ func Ransomhouse(channel chan string, chanDataForDb chan utils.DataForDb) {
 		if query == "" {
 			continue
 		}
-
 		needle := strings.ToLower(query)
 		for _, entry := range response.Data {
 			haystack := strings.ToLower(entry.Header + " " + entry.Info + " " + entry.URL)
