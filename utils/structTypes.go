@@ -92,3 +92,20 @@ type CompanyAilock struct {
 	Desc  string `json:"fullDescription"`
 	Links string `json:"links"`
 }
+
+type CompanyBravox struct {
+	ID       string `json:"id"`
+	Desc     string `json:"description"`
+	Campaign struct {
+		Name string `json:"name"`
+	} `json:"campaign"`
+}
+
+type CompanyCrypto24 struct {
+	Desc string `json:"comment"`
+	Name string `json:"company"`
+}
+
+type CompanyDirewolf struct {
+	Name string `json:"title"`
+}

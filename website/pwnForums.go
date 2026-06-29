@@ -120,7 +120,7 @@ func initPwnForumsClient() ([]*http.Cookie, error) {
 }
 
 func PwnForums(channel chan string, chanDataForDb chan utils.DataForDb) {
-	// data := utils.DataForDb{}
+	data := utils.DataForDb{}
 	// if err := initPwnForumsClient(); err != nil {
 	// 	panic(err)
 	// }
@@ -186,15 +186,15 @@ func PwnForums(channel chan string, chanDataForDb chan utils.DataForDb) {
 		case strings.Contains(body, "Search Results"):
 			fmt.Println("[PwnForums] Found result")
 
-			// links := utils.ExtractPostLinks(body, "/threads/")
-			// for _, link := range links {
-			// 	fmt.Println("Post link:", pwnForumsOnion+link)
-			// 	data.Source = "pwnForums"
-			// 	data.Key = query
-			// 	data.Url = pwnForumsOnion + link
-			// 	data.Desc = "lorem ipsum"
-			// 	chanDataForDb <- data
-			// }
+			links := utils.ExtractPostLinks(body, "/threads/")
+			for _, link := range links {
+				fmt.Println("Post link:", pwnForumsOnion+link)
+				data.Source = "pwnForums"
+				data.Key = query
+				data.Url = pwnForumsOnion
+				data.Desc = "lorem ipsum"
+				chanDataForDb <- data
+			}
 		default:
 			fmt.Println("[PwnForums] some error occured")
 			// case strings.Contains(body, "queue"):
